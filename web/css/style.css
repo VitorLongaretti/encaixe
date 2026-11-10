@@ -1,0 +1,2388 @@
+/* =====================================================================
+   Encaixe: folha de estilos única
+
+   Organização (procure pelo número da seção):
+     1. Tokens (cores, espaços, tipografia, raios)
+     2. Base (reset, textos, links, foco)
+     3. Layout (container, seções, grade)
+     4. Botões
+     5. Cabeçalho, logo e menu
+     6. Rodapé
+     7. Dialog
+     8. Ícones e status
+     9. Folha da agenda
+    10. Marca-texto e a animação de encaixe
+    11. Formulários
+    12. Tabelas
+    13. Início (index.html)
+    14. Páginas internas
+    15. Preferências do usuário: movimento reduzido e alto contraste
+
+   Mobile first: os estilos sem @media são os do celular. Os blocos
+   @media (min-width: ...) acrescentam o que muda em telas maiores.
+   Breakpoints: 720px (tablet) e 1024px (desktop).
+   ===================================================================== */
+
+
+/* =====================================================================
+   1. Tokens
+   Todas as decisões visuais moram aqui. Se uma cor ou um espaço
+   precisar mudar, muda num lugar só.
+   ===================================================================== */
+:root {
+  /* Cores do briefing (seção 9). Não criar cores novas. */
+  --papel: #F2F5F8;            /* fundo geral, branco frio de formulário */
+  --folha: #FFFFFF;            /* superfícies: agenda, formulários, tabelas */
+  --tinta: #18233F;            /* texto principal, azul-caneta escuro */
+  --caneta: #2343B0;           /* ações principais, links e foco */
+  --marca-texto: #EEF35A;      /* SÓ para encaixes e vagas salvas */
+  --caneta-vermelha: #B3261E;  /* falta, não confirmada e erros */
+  --verde-confirmado: #1F6F4A; /* confirmada e realizada */
+  --grafite: #5B6478;          /* texto secundário e borda de campos */
+  --pauta: #D5DEEA;            /* linhas da agenda e divisores */
+
+  /* Fundos suaves de status: versões bem claras da cor de cada status.
+     Contraste do texto sobre eles foi conferido (todos acima de 5:1). */
+  --fundo-azul: #E8EDF6;       /* agendada */
+  --fundo-vermelho: #FBE9E7;   /* não confirmada e faltou */
+  --fundo-verde: #E3F1EA;      /* confirmada */
+  --fundo-cinza: #ECEFF3;      /* atendida */
+
+  /* Espaços em escala de 4px */
+  --esp-1: 4px;
+  --esp-2: 8px;
+  --esp-3: 12px;
+  --esp-4: 16px;
+  --esp-5: 20px;
+  --esp-6: 24px;
+  --esp-7: 32px;
+  --esp-8: 40px;
+  --esp-9: 48px;
+  --esp-10: 64px;
+
+  /* Cantos com hierarquia: cada tamanho tem um papel */
+  --raio-campo: 6px;     /* campos, botões e status */
+  --raio-painel: 12px;   /* painéis, dialogs e a folha da agenda */
+  --raio-pilula: 999px;  /* só as etiquetas de motivo */
+
+  /* Tipografia: uma família só, com fallback do sistema */
+  --fonte: "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  /* Escala modular de razão 1.25. O clamp() faz o título crescer
+     junto com a tela, sem precisar de um @media para cada tamanho. */
+  --tam-h1: clamp(2.25rem, 1.6rem + 2.6vw, 3.05rem);  /* 36px a 49px */
+  --tam-h2: clamp(1.56rem, 1.3rem + 1.1vw, 1.95rem);  /* 25px a 31px */
+  --tam-h3: 1.25rem;                                   /* 20px */
+  --tam-destaque: 1.25em;                              /* parágrafo de abertura */
+  /* Única exceção à escala: o passo abaixo do corpo seria 12,8px, que é
+     pequeno demais para o público idoso. Usamos 15px como mínimo. */
+  --tam-menor: 0.9375rem;
+
+  /* Medidas da agenda (no celular, a coluna da hora fica mais estreita) */
+  --coluna-hora: 4.25rem;
+
+  /* Largura máxima do conteúdo */
+  --largura-maxima: 1200px;
+
+  /* Sombra só para o que fica "acima" da página: dialogs e painel de
+     encaixe. É a própria --tinta com transparência. */
+  --sombra-elevada: 0 12px 32px rgb(24 35 63 / 0.18);
+}
+
+
+/* =====================================================================
+   2. Base
+   ===================================================================== */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--fonte);
+  font-size: 1rem;            /* 16px no celular */
+  line-height: 1.55;
+  color: var(--tinta);
+  background: var(--papel);
+}
+
+@media (min-width: 1024px) {
+  body {
+    font-size: 1.0625rem;     /* 17px no desktop */
+  }
+}
+
+h1,
+h2,
+h3 {
+  margin: 0 0 var(--esp-4);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  text-wrap: balance;          /* evita uma palavra sozinha na última linha */
+}
+
+h1 { font-size: var(--tam-h1); }
+h2 { font-size: var(--tam-h2); }
+h3 { font-size: var(--tam-h3); line-height: 1.25; }
+
+p {
+  margin: 0 0 var(--esp-4);
+  max-width: 70ch;             /* linhas de no máximo ~70 caracteres */
+}
+
+a {
+  color: var(--caneta);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
+}
+
+a:hover {
+  text-decoration-thickness: 2px;
+}
+
+/* Horários e números alinhados em coluna, como numa agenda impressa */
+time,
+.numero {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Foco visível em tudo. Nunca remover sem colocar algo no lugar. */
+:focus-visible {
+  outline: 3px solid var(--caneta);
+  outline-offset: 2px;
+}
+
+/* O atributo hidden sempre esconde, mesmo em elementos que têm "display"
+   próprio (como .botao, que é inline-flex e "venceria" o hidden) */
+[hidden] {
+  display: none !important;
+}
+
+/* Esconde da tela, mas mantém para leitores de tela */
+.so-leitor {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* "Pular para o conteúdo": fica fora da tela até receber foco pelo Tab */
+.pular-conteudo {
+  position: absolute;
+  top: var(--esp-2);
+  left: var(--esp-4);
+  z-index: 100;
+  padding: var(--esp-3) var(--esp-4);
+  background: var(--caneta);
+  color: var(--folha);
+  font-weight: 700;
+  border-radius: var(--raio-campo);
+  transform: translateY(-200%);
+}
+
+.pular-conteudo:focus {
+  transform: translateY(0);
+}
+
+
+/* =====================================================================
+   3. Layout
+   ===================================================================== */
+.container {
+  width: 100%;
+  max-width: var(--largura-maxima);
+  margin-inline: auto;
+  padding-inline: var(--esp-4);
+}
+
+@media (min-width: 720px) {
+  .container {
+    padding-inline: var(--esp-6);
+  }
+
+  :root {
+    --coluna-hora: 4.75rem;
+  }
+}
+
+/* Cada bloco de conteúdo. A separação vem de uma linha de pauta,
+   não de cards nem de sombras. */
+.secao {
+  padding-block: var(--esp-9);
+}
+
+.secao + .secao {
+  border-top: 1px solid var(--pauta);
+}
+
+@media (min-width: 1024px) {
+  .secao {
+    padding-block: var(--esp-10);
+  }
+}
+
+/* Grade: uma coluna no celular, 12 colunas no desktop.
+   Cada componente diz quantas colunas ocupa (ver seção 12). */
+.grade {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--esp-7);
+}
+
+@media (min-width: 1024px) {
+  .grade {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: var(--esp-6);
+  }
+}
+
+/* Texto de abertura logo abaixo de um título */
+.abertura {
+  font-size: var(--tam-destaque);
+  line-height: 1.45;
+}
+
+/* Nota de fonte dos dados: discreta, mas com contraste AA */
+.fonte {
+  color: var(--grafite);
+  font-size: var(--tam-menor);
+}
+
+
+/* =====================================================================
+   4. Botões
+   O texto do botão diz exatamente o que acontece. Altura mínima de 44px.
+   ===================================================================== */
+.botao {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--esp-2);
+  min-height: 44px;
+  padding: var(--esp-2) var(--esp-5);
+  border: 2px solid transparent;
+  border-radius: var(--raio-campo);
+  font: inherit;
+  font-weight: 700;
+  line-height: 1.2;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease;
+}
+
+/* Primário: a ação principal da tela */
+.botao--primario {
+  background: var(--caneta);
+  color: var(--folha);
+}
+
+.botao--primario:hover {
+  background: var(--tinta);
+}
+
+/* Secundário: borda e texto em azul-caneta */
+.botao--secundario {
+  background: var(--folha);
+  border-color: var(--caneta);
+  color: var(--caneta);
+}
+
+.botao--secundario:hover {
+  background: var(--fundo-azul);
+}
+
+/* Perigoso: ações que apagam ou cancelam algo */
+.botao--perigoso {
+  background: var(--folha);
+  border-color: var(--caneta-vermelha);
+  color: var(--caneta-vermelha);
+}
+
+.botao--perigoso:hover {
+  background: var(--fundo-vermelho);
+}
+
+/* Um botão com cara de link, para ações discretas (como no rodapé).
+   É <button> e não <a> porque abre um dialog, não leva a outra página. */
+.link-botao {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--caneta);
+  font: inherit;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
+  cursor: pointer;
+}
+
+.link-botao:hover {
+  text-decoration-thickness: 2px;
+}
+
+
+/* =====================================================================
+   5. Cabeçalho, logo e menu
+   O cabeçalho não fica fixo: ele rola com a página e deixa mais espaço
+   útil no celular. A separação é só a linha de pauta.
+   ===================================================================== */
+.cabecalho {
+  background: var(--folha);
+  border-bottom: 1px solid var(--pauta);
+}
+
+.cabecalho__interno {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--esp-2) var(--esp-6);
+  padding-block: var(--esp-3);
+}
+
+/* Logo: símbolo + a palavra "Encaixe" */
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--esp-2);
+  min-height: 44px;
+  color: var(--tinta);
+  font-size: 1.375rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  text-decoration: none;
+}
+
+.logo svg {
+  flex: none;
+}
+
+/* Botão "Menu": só aparece no celular E quando o JS está ativo.
+   Sem JS, os links ficam sempre visíveis (ver .js mais abaixo). */
+.menu-botao {
+  display: none;
+}
+
+.menu {
+  flex-basis: 100%;            /* no celular e no tablet, o menu ocupa uma linha inteira */
+}
+
+.menu__lista {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--esp-1) var(--esp-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.menu__lista a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding-inline: var(--esp-2);
+  color: var(--tinta);
+  text-decoration: none;
+  border-radius: var(--raio-campo);
+}
+
+.menu__lista a:hover {
+  text-decoration: underline;
+}
+
+/* Página atual: negrito + um traço de caneta embaixo (não só cor) */
+.menu__lista a[aria-current="page"] {
+  font-weight: 700;
+  text-decoration: underline;
+  text-decoration-color: var(--caneta);
+  text-decoration-thickness: 3px;
+  text-underline-offset: 0.4em;
+}
+
+/* --- Com JS ativo, no celular: o menu recolhe atrás do botão --- */
+.js .menu-botao {
+  display: inline-flex;
+}
+
+.js .menu {
+  display: none;
+}
+
+.js .menu.esta-aberto {
+  display: block;
+  padding-bottom: var(--esp-2);
+}
+
+.js .menu__lista {
+  flex-direction: column;
+  gap: 0;
+}
+
+.js .menu__lista a {
+  width: 100%;
+  min-height: 48px;
+  padding-inline: var(--esp-2);
+  border-top: 1px solid var(--pauta);
+  border-radius: 0;
+}
+
+.js .menu__lista a.menu__cidadao {
+  justify-content: center;
+  margin-top: var(--esp-3);
+  border-radius: var(--raio-campo);
+}
+
+/* --- Tablet em diante: menu sempre visível, em linha --- */
+@media (min-width: 720px) {
+  .js .menu-botao {
+    display: none;
+  }
+
+  .js .menu,
+  .js .menu.esta-aberto {
+    display: block;
+    padding-bottom: 0;
+  }
+
+  .menu__lista,
+  .js .menu__lista {
+    flex-direction: row;
+    align-items: center;
+    gap: var(--esp-1);
+  }
+
+  .menu__lista a,
+  .js .menu__lista a {
+    width: auto;
+    min-height: 44px;
+    border-top: 0;
+    border-radius: var(--raio-campo);
+  }
+
+  /* empurra "Minha consulta" para a direita */
+  .menu__item-cidadao {
+    margin-left: auto;
+  }
+
+  .js .menu__lista a.menu__cidadao {
+    margin-top: 0;
+  }
+}
+
+/* --- Desktop: logo e menu na mesma linha --- */
+@media (min-width: 1024px) {
+  .cabecalho__interno {
+    flex-wrap: nowrap;
+  }
+
+  .menu {
+    flex: 1 1 auto;
+    flex-basis: auto;
+  }
+
+  .menu__lista a,
+  .js .menu__lista a {
+    padding-inline: var(--esp-3);
+  }
+
+  .menu__lista a.menu__cidadao,
+  .js .menu__lista a.menu__cidadao {
+    padding-inline: var(--esp-5);
+  }
+}
+
+/* "Minha consulta" é a porta de entrada do cidadão: vai separada,
+   à direita, com cara de botão secundário (borda e texto azul-caneta).
+   Fica no fim da seção, com o seletor ".menu .menu__lista", para vencer
+   as regras de borda dos links comuns em todos os tamanhos de tela. */
+.menu .menu__lista a.menu__cidadao {
+  padding-inline: var(--esp-4);
+  border: 2px solid var(--caneta);
+  border-radius: var(--raio-campo);
+  background: var(--folha);
+  color: var(--caneta);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.menu .menu__lista a.menu__cidadao:hover {
+  background: var(--fundo-azul);
+}
+
+/* Na própria página "Minha consulta", o botão fica preenchido */
+.menu .menu__lista a.menu__cidadao[aria-current="page"] {
+  background: var(--caneta);
+  color: var(--folha);
+}
+
+
+/* =====================================================================
+   6. Rodapé
+   ===================================================================== */
+.rodape {
+  margin-top: var(--esp-10);
+  padding-block: var(--esp-7);
+  background: var(--folha);
+  border-top: 1px solid var(--pauta);
+  color: var(--grafite);
+  font-size: var(--tam-menor);
+}
+
+.rodape__interno {
+  display: grid;
+  gap: var(--esp-6);
+}
+
+.rodape p {
+  margin-bottom: var(--esp-2);
+}
+
+.rodape__titulo {
+  color: var(--tinta);
+  font-weight: 700;
+}
+
+.rodape__nomes {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+@media (min-width: 720px) {
+  .rodape__interno {
+    grid-template-columns: 2fr 1fr;
+  }
+}
+
+
+/* =====================================================================
+   7. Dialog
+   Usamos o <dialog> nativo com showModal(): ele já prende o foco
+   dentro da janela e fecha com Esc.
+   ===================================================================== */
+.dialog {
+  width: min(32rem, calc(100% - 2 * var(--esp-4)));
+  padding: var(--esp-6);
+  border: 1px solid var(--pauta);
+  border-radius: var(--raio-painel);
+  background: var(--folha);
+  color: var(--tinta);
+  box-shadow: var(--sombra-elevada);
+}
+
+.dialog::backdrop {
+  background: rgb(24 35 63 / 0.45);   /* --tinta com transparência */
+}
+
+/* Microinteração ao abrir: curta (200ms) e só como resposta a um clique */
+.dialog[open] {
+  animation: abrir-dialog 200ms ease-out;
+}
+
+@keyframes abrir-dialog {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+.dialog__titulo {
+  font-size: var(--tam-h3);
+}
+
+.dialog__acoes {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--esp-3);
+  margin-top: var(--esp-6);
+}
+
+/* --- Toasts ---
+   Avisos curtos depois de uma ação ("Paciente salvo."). Ficam no canto
+   inferior e somem em 5s (o tempo é controlado no ui.js). No celular,
+   ocupam a largura toda, acima da área do polegar. */
+.toasts {
+  position: fixed;
+  z-index: 50;
+  right: var(--esp-4);
+  bottom: var(--esp-4);
+  left: var(--esp-4);
+  display: grid;
+  gap: var(--esp-2);
+  pointer-events: none;      /* a região vazia não bloqueia cliques na página */
+}
+
+@media (min-width: 720px) {
+  .toasts {
+    left: auto;
+    width: 24rem;
+  }
+}
+
+.toast {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--esp-3);
+  padding: var(--esp-4);
+  border: 1px solid var(--pauta);
+  border-radius: var(--raio-campo);
+  background: var(--folha);
+  color: var(--tinta);
+  box-shadow: var(--sombra-elevada);
+  pointer-events: auto;
+  animation: aparecer-toast 200ms ease-out;
+}
+
+.toast__texto {
+  margin: 0;
+}
+
+.toast--sucesso .icone { color: var(--verde-confirmado); }
+.toast--erro .icone    { color: var(--caneta-vermelha); }
+
+/* Encaixe confirmado: o único toast com o marca-texto, porque é uma vaga salva */
+.toast--encaixe {
+  border-color: var(--marca-texto);
+  background: var(--marca-texto);
+}
+
+@keyframes aparecer-toast {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+
+/* =====================================================================
+   8. Ícones e status
+   Ícones: SVG inline, 20px, traço de 1.75px e cantos arredondados.
+   Status: sempre cor + ícone + texto. Nunca só cor.
+   ===================================================================== */
+.icone {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* O status parece um carimbo na linha da agenda: cantos de 6px.
+   O formato de pílula fica só para as etiquetas de motivo, assim
+   "Confirmada" nunca se confunde com "Risco alto". */
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px var(--esp-2);
+  border-radius: var(--raio-campo);
+  font-size: var(--tam-menor);
+  font-weight: 700;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
+.status--agendada       { color: var(--tinta);            background: var(--fundo-azul); }
+.status--nao-confirmada { color: var(--caneta-vermelha);  background: var(--fundo-vermelho); }
+.status--confirmada     { color: var(--verde-confirmado); background: var(--fundo-verde); }
+.status--faltou         { color: var(--caneta-vermelha);  background: var(--fundo-vermelho); }
+.status--atendida       { color: var(--grafite);          background: var(--fundo-cinza); }
+.status--encaixe        { color: var(--tinta);            background: var(--marca-texto); }
+
+
+/* =====================================================================
+   9. Folha da agenda
+   Uma linha por horário, como a agenda de papel do balcão. As mesmas
+   classes servem para a demonstração do Início e para a Agenda real.
+   ===================================================================== */
+.folha {
+  background: var(--folha);
+  border: 1px solid var(--pauta);
+  border-radius: var(--raio-painel);
+}
+
+/* Cabeçalho da folha: um traço mais grosso embaixo, como o topo
+   de um formulário impresso. */
+.folha__cabecalho {
+  padding: var(--esp-4) var(--esp-5);
+  border-bottom: 2px solid var(--tinta);
+}
+
+.folha__cabecalho p {
+  margin: 0;
+}
+
+.folha__dia {
+  font-weight: 700;
+}
+
+.folha__local {
+  color: var(--grafite);
+}
+
+.folha__linhas {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Cada linha: [hora | paciente | status]. A coluna da hora é separada
+   por um traço vertical, como na agenda de papel. */
+.linha {
+  position: relative;
+  isolation: isolate;          /* o traço do marca-texto (::before) fica atrás do texto, mas dentro da linha */
+  display: grid;
+  grid-template-columns: var(--coluna-hora) minmax(0, 1fr) auto;
+  align-items: center;
+  min-height: 3.5rem;
+  border-bottom: 1px solid var(--pauta);
+}
+
+.linha:last-child {
+  border-bottom: 0;
+}
+
+.linha > * {
+  padding-block: var(--esp-3);
+}
+
+.linha__hora {
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  padding-inline: var(--esp-4);
+  border-right: 1px solid var(--pauta);
+  font-weight: 700;
+}
+
+.linha__paciente {
+  display: grid;               /* permite sobrepor "antes" e "depois" na animação */
+  padding-inline: var(--esp-4) var(--esp-2);
+  overflow-wrap: break-word;   /* quebra entre palavras; só corta uma palavra se ela não couber sozinha */
+}
+
+.linha__status {
+  display: grid;
+  justify-items: end;
+  padding-right: var(--esp-4);
+}
+
+.linha__nota {
+  color: var(--grafite);
+  font-size: var(--tam-menor);
+}
+
+/* Vaga livre: a consulta foi cancelada e o horário está esperando alguém */
+.vaga-livre {
+  display: inline-flex;
+  align-items: center;
+  justify-self: start;
+  padding: 2px var(--esp-3);
+  border: 2px dashed var(--pauta);
+  border-radius: var(--raio-campo);
+  color: var(--grafite);
+  font-weight: 700;
+}
+
+/* Uma linha avulsa, fora de uma lista (usada em "Como funciona") */
+.folha--avulsa .linha {
+  border-bottom: 0;
+}
+
+/* Linhas extras: na demonstração, o celular mostra só as 3 linhas
+   em volta da vaga, para a animação aparecer logo na tela. */
+.linha--extra {
+  display: none;
+}
+
+@media (min-width: 720px) {
+  .linha--extra {
+    display: grid;
+  }
+}
+
+
+/* =====================================================================
+   10. Marca-texto e a animação de encaixe
+   É a assinatura visual do Encaixe e aparece SÓ quando uma vaga é salva.
+   ===================================================================== */
+
+/* <mark> fora da agenda: um destaque simples */
+mark {
+  padding-inline: 0.15em;
+  background: var(--marca-texto);
+  color: var(--tinta);
+  border-radius: 2px;
+}
+
+/* Dentro da linha encaixada, o fundo vem do traço (::before) abaixo,
+   então o <mark> fica transparente. Ele continua no HTML porque
+   diz, semanticamente, "este nome está marcado". */
+.linha--encaixe mark {
+  padding: 0;
+  background: transparent;
+  font-weight: 700;
+}
+
+.linha--encaixe .status--encaixe {
+  background: transparent;
+}
+
+/* O traço do marca-texto. Ele começa depois da coluna da hora e tem
+   cantos assimétricos e uma leve inclinação, como um traço feito à mão. */
+.linha--encaixe::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  top: 7px;
+  bottom: 7px;
+  left: calc(var(--coluna-hora) + var(--esp-1));
+  right: var(--esp-2);
+  background: var(--marca-texto);
+  border-radius: 4px 14px 6px 12px / 10px 5px 12px 6px;
+  transform: rotate(-0.6deg);
+}
+
+/* --- A animação ---
+   Usamos clip-path em vez de scaleX: o scaleX "achataria" os cantos
+   irregulares durante o movimento, e o traço deixaria de parecer de
+   caneta. O clip-path revela o traço da esquerda para a direita sem
+   deformar nada.
+
+   A classe .linha--animar liga a animação. No Início ela já vem no HTML
+   (com 1,2s de atraso). Na Agenda, o JS adiciona a mesma classe quando
+   a recepção confirma um encaixe. São os mesmos keyframes nos dois lugares. */
+.linha--animar {
+  --atraso-marca: 0s;          /* o Início muda este valor para 1.2s */
+}
+
+.linha--animar::before {
+  animation: passar-marca-texto 600ms cubic-bezier(0.55, 0, 0.25, 1) var(--atraso-marca) both;
+}
+
+@keyframes passar-marca-texto {
+  from { clip-path: inset(0 100% 0 0); }
+  to   { clip-path: inset(0 0 0 0); }
+}
+
+/* Troca de texto: "Vaga livre" some e o nome do paciente aparece no
+   mesmo lugar (as duas camadas ficam sobrepostas na mesma célula). */
+.troca {
+  grid-area: 1 / 1;
+  align-self: center;          /* o nome fica no meio da linha, mesmo que "Vaga livre" ocupe duas linhas */
+}
+
+.linha--animar .troca--antes {
+  animation: sumir 180ms ease-in calc(var(--atraso-marca) + 60ms) both;
+}
+
+.linha--animar .troca--depois {
+  animation: aparecer 220ms ease-out calc(var(--atraso-marca) + 300ms) both;
+}
+
+@keyframes sumir {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+@keyframes aparecer {
+  from {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+.troca--antes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--esp-1) var(--esp-3);
+}
+
+
+/* =====================================================================
+   11. Formulários
+   Como um formulário bem impresso: cada grupo (fieldset) começa com um
+   traço de tinta, o rótulo fica sempre visível acima do campo e o erro
+   aparece logo abaixo, em vermelho, com texto (nunca só a cor).
+   ===================================================================== */
+.formulario-painel {
+  margin-block: var(--esp-7) var(--esp-9);
+  padding: var(--esp-5);
+  background: var(--folha);
+  border: 1px solid var(--pauta);
+  border-radius: var(--raio-painel);
+}
+
+@media (min-width: 720px) {
+  .formulario-painel {
+    padding: var(--esp-7);
+  }
+}
+
+.formulario-painel__titulo {
+  font-size: var(--tam-h2);
+  margin-bottom: var(--esp-6);
+}
+
+/* Os grupos: um embaixo do outro no celular, dois no tablet, três no desktop */
+.formulario__grupos {
+  display: grid;
+  gap: var(--esp-7) var(--esp-6);
+}
+
+@media (min-width: 720px) {
+  .formulario__grupos {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .formulario__grupos {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* Fieldset sem a moldura padrão do navegador. O traço de cima marca o
+   começo do grupo. A legenda "flutua" para não cortar esse traço, que é
+   o que o navegador faria normalmente. */
+.grupo {
+  min-width: 0;
+  margin: 0;
+  padding: var(--esp-4) 0 0;
+  border: 0;
+  border-top: 2px solid var(--tinta);
+}
+
+.grupo > legend {
+  float: left;
+  width: 100%;
+  margin-bottom: var(--esp-4);
+  padding: 0;
+  font-size: var(--tam-h3);
+  font-weight: 700;
+}
+
+.grupo > legend + * {
+  clear: both;
+}
+
+.campo {
+  display: grid;
+  gap: var(--esp-1);
+  margin: 0 0 var(--esp-5);
+}
+
+.campo > label,
+.campo > legend {
+  font-weight: 700;
+}
+
+/* Grupo de rádios: é um fieldset dentro do fieldset */
+.campo--opcoes {
+  min-width: 0;
+  padding: 0;
+  border: 0;
+}
+
+.campo--opcoes > legend {
+  margin-bottom: var(--esp-1);
+  padding: 0;
+}
+
+.campo__dica {
+  margin: 0;
+  color: var(--grafite);
+  font-size: var(--tam-menor);
+}
+
+.campo__erro {
+  margin: 0;
+  color: var(--caneta-vermelha);
+  font-size: var(--tam-menor);
+  font-weight: 700;
+  animation: aparecer-erro 150ms ease-out;
+}
+
+/* Sem mensagem, o espaço do erro some */
+.campo__erro:empty {
+  display: none;
+}
+
+@keyframes aparecer-erro {
+  from {
+    opacity: 0;
+    transform: translateY(-3px);
+  }
+}
+
+/* Campos de texto e listas. A borda é --grafite (5,9:1) porque o contorno
+   de um campo precisa de 3:1 de contraste (WCAG 1.4.11), e --pauta não passa. */
+.campo input[type="text"],
+.campo input[type="tel"],
+.campo input[type="search"],
+.campo input[type="date"],
+.campo input[type="datetime-local"],
+.campo select {
+  width: 100%;
+  min-height: 44px;
+  padding: var(--esp-2) var(--esp-3);
+  border: 1px solid var(--grafite);
+  border-radius: var(--raio-campo);
+  background: var(--folha);
+  color: var(--tinta);
+  font: inherit;
+}
+
+.campo input:hover,
+.campo select:hover {
+  border-color: var(--tinta);
+}
+
+/* Com erro: borda vermelha mais grossa (a sombra soma 1px à borda,
+   sem empurrar o layout) */
+.campo [aria-invalid="true"] {
+  border-color: var(--caneta-vermelha);
+  box-shadow: 0 0 0 1px var(--caneta-vermelha);
+}
+
+/* Caixas de seleção e rádios: a linha inteira é clicável, com 44px de altura */
+.opcao {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-3);
+  min-height: 44px;
+  cursor: pointer;
+}
+
+.opcao input {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  margin: 0;
+  accent-color: var(--caneta);
+}
+
+.opcoes-em-linha {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--esp-5);
+}
+
+/* A opção de encaixe recebe uma moldura, porque é ela que decide se a
+   pessoa entra na lista de candidatos */
+.campo--destaque {
+  margin-top: var(--esp-3);
+  padding: var(--esp-2) var(--esp-4) var(--esp-3);
+  border: 1px solid var(--pauta);
+  border-radius: var(--raio-campo);
+}
+
+.formulario__aviso {
+  margin: var(--esp-2) 0 0;
+  color: var(--caneta-vermelha);
+  font-weight: 700;
+}
+
+.formulario__aviso:empty {
+  display: none;
+}
+
+.formulario__acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--esp-3);
+  margin-top: var(--esp-2);
+  padding-top: var(--esp-5);
+  border-top: 1px solid var(--pauta);
+}
+
+/* Erro dentro de um dialog (ex.: a regra 6 bloqueou a exclusão) */
+.dialog__erro {
+  margin: 0;
+  color: var(--caneta-vermelha);
+  font-weight: 700;
+}
+
+.dialog__erro:empty {
+  display: none;
+}
+
+
+/* =====================================================================
+   12. Tabelas
+   No desktop, tabela normal. Abaixo de 720px, cada linha vira um cartão
+   e cada dado mostra o próprio rótulo (vem do atributo data-label).
+   ===================================================================== */
+.tabela-moldura {
+  background: var(--folha);
+  border: 1px solid var(--pauta);
+  border-radius: var(--raio-painel);
+  overflow: hidden;
+}
+
+.tabela {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.tabela caption {
+  padding: var(--esp-4) var(--esp-5);
+  border-bottom: 2px solid var(--tinta);
+  font-weight: 700;
+  text-align: left;
+}
+
+.tabela th,
+.tabela td {
+  padding: var(--esp-3) var(--esp-5);
+  text-align: left;
+  vertical-align: top;
+}
+
+.tabela thead th {
+  color: var(--grafite);
+  font-size: var(--tam-menor);
+  border-bottom: 1px solid var(--pauta);
+}
+
+.tabela tbody tr + tr {
+  border-top: 1px solid var(--pauta);
+}
+
+.tabela tbody th {
+  font-weight: 700;
+}
+
+@media (max-width: 719.98px) {
+  .tabela thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+
+  .tabela tbody tr {
+    display: block;
+    padding: var(--esp-3) var(--esp-4);
+  }
+
+  .tabela tbody th,
+  .tabela tbody td {
+    display: block;
+    padding: var(--esp-1) 0;
+  }
+
+  /* o rótulo de cada dado, tirado do data-label */
+  .tabela tbody td[data-label]::before {
+    content: attr(data-label);
+    display: block;
+    color: var(--grafite);
+    font-size: var(--tam-menor);
+    font-weight: 700;
+  }
+}
+
+
+/* =====================================================================
+   13. Início (index.html)
+   ===================================================================== */
+
+/* --- Hero --- */
+.hero {
+  padding-block: var(--esp-9);
+}
+
+.hero__acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--esp-3);
+  margin-top: var(--esp-6);
+}
+
+.hero__complemento {
+  color: var(--grafite);
+}
+
+.hero__demo {
+  margin: 0;
+}
+
+/* Na demonstração do Início, o traço espera 1,2s depois do carregamento */
+.hero__demo .linha--animar {
+  --atraso-marca: 1.2s;
+}
+
+.legenda {
+  margin-top: var(--esp-3);
+  color: var(--grafite);
+  font-size: var(--tam-menor);
+}
+
+@media (min-width: 720px) {
+  /* no tablet e no desktop, o título quebra exatamente na vírgula */
+  .hero__titulo-linha {
+    display: block;
+  }
+}
+
+@media (min-width: 1024px) {
+  .hero {
+    padding-block: var(--esp-10);
+  }
+
+  .hero__texto {
+    grid-column: 1 / span 7;
+    align-self: center;
+  }
+
+  .hero__demo {
+    grid-column: 8 / span 5;
+  }
+}
+
+/* --- O problema --- */
+@media (min-width: 1024px) {
+  .problema__texto {
+    grid-column: 1 / span 6;
+  }
+
+  .problema__figura {
+    grid-column: 8 / span 5;
+    align-self: start;
+  }
+}
+
+.problema__figura {
+  margin: 0;
+}
+
+/* --- Como funciona: três passos que são uma sequência de verdade --- */
+.passos {
+  display: grid;
+  gap: var(--esp-7);
+  margin: var(--esp-7) 0 var(--esp-6);
+  padding: 0;
+  list-style: none;
+}
+
+.passo {
+  display: grid;
+  gap: var(--esp-4);
+  align-content: start;
+  padding-top: var(--esp-5);
+  border-top: 2px solid var(--tinta);
+}
+
+.passo__numero {
+  font-size: var(--tam-h2);
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.passo h3,
+.passo p {
+  margin: 0;
+}
+
+/* A linha da agenda dentro de cada passo fica estreita (três colunas no
+   desktop). Por isso o status desce para baixo do nome, em vez de
+   espremer o nome em três linhas. */
+.passo .folha {
+  max-width: 28rem;
+}
+
+.passo .linha {
+  grid-template-columns: var(--coluna-hora) minmax(0, 1fr);
+}
+
+.passo .linha__hora {
+  grid-row: span 2;
+}
+
+.passo .linha__paciente {
+  padding-bottom: var(--esp-1);
+}
+
+.passo .linha__status {
+  justify-items: start;
+  padding-top: 0;
+  padding-inline: var(--esp-4);
+}
+
+.passo .linha__status:empty {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .passos {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--esp-6);
+  }
+}
+
+/* --- Quem participa: uma lista de definição, como um formulário impresso --- */
+.papeis {
+  margin: var(--esp-6) 0 0;
+  border-top: 2px solid var(--tinta);
+}
+
+.papel {
+  display: grid;
+  gap: var(--esp-1);
+  padding-block: var(--esp-5);
+  border-bottom: 1px solid var(--pauta);
+}
+
+.papel dt {
+  font-size: var(--tam-h3);
+  font-weight: 700;
+}
+
+.papel dd {
+  margin: 0;
+  max-width: 70ch;
+}
+
+@media (min-width: 720px) {
+  .papel {
+    grid-template-columns: 16rem minmax(0, 1fr);
+    gap: var(--esp-6);
+  }
+}
+
+/* --- Impacto --- */
+.impacto__tabela {
+  margin-block: var(--esp-6);
+}
+
+
+/* =====================================================================
+   14. Páginas internas
+   ===================================================================== */
+.pagina {
+  padding-block: var(--esp-9);
+}
+
+.pagina__intro {
+  color: var(--grafite);
+  font-size: var(--tam-destaque);
+}
+
+/* --- Lista com busca (Pacientes, e depois Fila) --- */
+.lista__topo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--esp-4) var(--esp-6);
+}
+
+.lista__topo h2 {
+  margin: 0;
+}
+
+.busca {
+  flex: 1 1 18rem;
+  max-width: 26rem;
+  margin: 0;
+}
+
+.lista__contagem {
+  margin: var(--esp-4) 0 var(--esp-3);
+  color: var(--grafite);
+}
+
+.tabela__nome {
+  display: block;
+}
+
+/* Informação menor embaixo de um dado (ex.: "68 anos" embaixo da data) */
+.tabela__detalhe {
+  display: block;
+  color: var(--grafite);
+  font-size: var(--tam-menor);
+  font-weight: 400;
+}
+
+/* Números (CPF, cartão, telefone, datas) nunca quebram no meio */
+.tabela .numero {
+  white-space: nowrap;
+}
+
+.tabela__acoes {
+  white-space: nowrap;
+  text-align: right;
+}
+
+.tabela__acoes .botao + .botao {
+  margin-left: var(--esp-2);
+}
+
+/* Botão com menos espaço nas laterais (continua com 44px de altura) */
+.botao--compacto {
+  padding-inline: var(--esp-3);
+}
+
+@media (max-width: 719.98px) {
+  .tabela tbody td.tabela__acoes {
+    padding-top: var(--esp-3);
+    text-align: left;
+    white-space: normal;
+  }
+}
+
+/* --- Título da página com um botão ao lado (Agenda) --- */
+.pagina__topo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--esp-4);
+}
+
+.pagina__topo h1 {
+  margin: 0;
+}
+
+/* --- Filtros --- */
+.filtros {
+  display: grid;
+  gap: var(--esp-4);
+  margin-block: var(--esp-6);
+}
+
+.filtros .campo {
+  margin: 0;
+}
+
+@media (min-width: 720px) {
+  .filtros {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .filtros .campo:last-child {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (min-width: 1024px) {
+  .filtros {
+    grid-template-columns: 16rem 14rem minmax(0, 1fr);
+    align-items: end;
+  }
+
+  .filtros .campo:last-child {
+    grid-column: auto;
+  }
+}
+
+.seletor-dia {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--esp-2);
+}
+
+.seletor-dia input[type="date"] {
+  flex: 1 1 10rem;
+  width: auto;
+}
+
+/* Botão só com ícone (o texto fica para o leitor de tela): quadrado de 44px */
+.botao--icone {
+  width: 44px;
+  padding: 0;
+}
+
+/* --- Agenda: a folha e, quando aberto, o painel de encaixe --- */
+.agenda {
+  display: grid;
+  gap: var(--esp-6);
+  align-items: start;
+}
+
+@media (min-width: 1024px) {
+  .agenda--com-painel {
+    grid-template-columns: minmax(0, 1fr) 26rem;
+  }
+}
+
+.agenda__folha .folha__dia {
+  margin: 0;
+  font-size: var(--tam-h3);
+}
+
+.agenda__vazia {
+  margin: 0;
+  padding: var(--esp-6) var(--esp-5);
+  color: var(--grafite);
+}
+
+/* Linha da agenda com ações: [hora | paciente | status] e, embaixo, os botões */
+.linha--agenda {
+  grid-template-columns: var(--coluna-hora) minmax(0, 1fr) auto;
+  grid-template-areas:
+    "hora paciente status"
+    "hora acoes acoes";
+}
+
+.linha--agenda .linha__hora { grid-area: hora; }
+.linha--agenda .linha__paciente { grid-area: paciente; }
+.linha--agenda .linha__status { grid-area: status; }
+
+/* No celular, o status desce para baixo do nome: assim o nome não quebra
+   em duas linhas por falta de espaço */
+@media (max-width: 719.98px) {
+  .linha--agenda {
+    grid-template-columns: var(--coluna-hora) minmax(0, 1fr);
+    grid-template-areas:
+      "hora paciente"
+      "hora status"
+      "hora acoes";
+  }
+
+  .linha--agenda .linha__status {
+    justify-items: start;
+    padding: 0 var(--esp-4) var(--esp-3);
+  }
+
+  .linha--agenda .linha__status:empty {
+    display: none;
+  }
+}
+
+/* Dentro da folha, "Cancelar consulta" é só texto vermelho, sem borda:
+   repetido em cada linha, o botão com borda pesaria demais na agenda.
+   A área de toque continua com 44px. */
+.linha__acoes .botao--perigoso {
+  border-color: transparent;
+  background: transparent;
+  padding-inline: var(--esp-2);
+}
+
+.linha__acoes .botao--perigoso:hover {
+  background: var(--fundo-vermelho);
+}
+
+.linha__acoes {
+  grid-area: acoes;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--esp-2);
+  padding: 0 var(--esp-4) var(--esp-3);
+}
+
+.linha > .linha__acoes {
+  padding-top: 0;
+}
+
+.linha__acoes:empty {
+  display: none;
+}
+
+.linha__nome {
+  font-weight: 700;
+}
+
+.linha__nota {
+  display: block;
+  color: var(--grafite);
+  font-size: var(--tam-menor);
+}
+
+/* Horários sem consulta: discretos, para a folha não ficar pesada */
+.linha--horario-livre {
+  min-height: 2.75rem;
+}
+
+.linha--horario-livre .linha__hora {
+  color: var(--grafite);
+  font-weight: 400;
+}
+
+.linha--horario-livre > * {
+  padding-block: var(--esp-2);
+}
+
+.linha__livre {
+  color: var(--grafite);
+  font-size: var(--tam-menor);
+}
+
+/* Anotação da recepção: itálico azul, como escrito à caneta na agenda.
+   Não é link (links sempre têm sublinhado). */
+.anotacao {
+  display: block;
+  color: var(--caneta);
+  font-style: italic;
+  font-size: var(--tam-menor);
+}
+
+.folha__dia .anotacao {
+  display: inline;
+  margin-left: var(--esp-1);
+  font-size: 0.85em;
+  font-weight: 400;
+}
+
+/* --- Painel de encaixe ---
+   Junto com os dialogs, é o único elemento com sombra de verdade,
+   porque fica "acima" da página. */
+.painel-encaixe {
+  padding: var(--esp-5);
+  background: var(--folha);
+  border: 1px solid var(--pauta);
+  border-radius: var(--raio-painel);
+  box-shadow: var(--sombra-elevada);
+}
+
+@media (min-width: 1024px) {
+  .painel-encaixe {
+    position: sticky;
+    top: var(--esp-4);
+    max-height: calc(100vh - 2 * var(--esp-4));
+    overflow: auto;
+  }
+}
+
+.painel-encaixe__topo {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--esp-3);
+}
+
+.painel-encaixe__titulo {
+  margin: 0;
+  font-size: var(--tam-h2);
+}
+
+.painel-encaixe__vaga {
+  margin: var(--esp-2) 0 var(--esp-4);
+}
+
+.painel-encaixe__regra {
+  margin: 0;
+  color: var(--grafite);
+  font-size: var(--tam-menor);
+}
+
+.candidatos {
+  margin: var(--esp-3) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.candidato {
+  display: grid;
+  grid-template-columns: 2rem minmax(0, 1fr);
+  gap: var(--esp-3);
+  padding-block: var(--esp-4);
+  border-top: 1px solid var(--pauta);
+}
+
+/* A posição na fila: aqui a numeração é uma ordem de verdade */
+.candidato__posicao {
+  font-size: var(--tam-h2);
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.candidato__nome {
+  margin: 0;
+  font-size: 1.125rem;
+}
+
+.candidato__resumo {
+  margin: 0 0 var(--esp-2);
+  color: var(--grafite);
+}
+
+/* Quem recusou ou não atendeu fica apagado, com a anotação da recepção */
+.candidato--respondido .candidato__nome,
+.candidato--respondido .candidato__posicao {
+  color: var(--grafite);
+}
+
+.candidato--respondido .etiquetas {
+  display: none;
+}
+
+/* Etiquetas de motivo: o único lugar com formato de pílula */
+.etiquetas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--esp-1);
+  margin: 0 0 var(--esp-3);
+  padding: 0;
+  list-style: none;
+}
+
+.etiqueta {
+  padding: 2px var(--esp-3);
+  border: 1px solid var(--pauta);
+  border-radius: var(--raio-pilula);
+  background: var(--fundo-cinza);
+  font-size: var(--tam-menor);
+  font-weight: 700;
+}
+
+.oferta {
+  padding: var(--esp-4);
+  border: 2px solid var(--caneta);
+  border-radius: var(--raio-campo);
+  background: var(--fundo-azul);
+}
+
+.oferta__contato {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--esp-2);
+  margin: 0 0 var(--esp-3);
+}
+
+.oferta__pergunta {
+  margin: 0 0 var(--esp-2);
+  font-weight: 700;
+}
+
+.oferta__botoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--esp-2);
+}
+
+/* --- Dialogs maiores e o que sobe de baixo (celular) --- */
+.dialog--largo {
+  width: min(38rem, calc(100% - 2 * var(--esp-4)));
+}
+
+.dialog--de-baixo {
+  width: 100%;
+  max-width: 100%;
+  max-height: 88vh;
+  margin: auto 0 0;
+  padding: var(--esp-5);
+  border-radius: var(--raio-painel) var(--raio-painel) 0 0;
+}
+
+.dialog--de-baixo[open] {
+  animation: subir-de-baixo 220ms ease-out;
+}
+
+@keyframes subir-de-baixo {
+  from {
+    transform: translateY(40px);
+    opacity: 0;
+  }
+}
+
+/* Dois campos lado a lado (dia e horário) */
+.campo__par {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--esp-3);
+}
+
+.campo__par .campo {
+  margin: 0;
+}
+
+/* --- Fila de espera --- */
+.lista__filtros {
+  display: flex;
+  flex: 1 1 26rem;
+  flex-wrap: wrap;
+  gap: var(--esp-3);
+  max-width: 34rem;
+}
+
+.lista__filtros .campo {
+  flex: 1 1 12rem;
+  margin: 0;
+}
+
+/* O segundo rótulo do campo de paciente (embaixo da busca) */
+.campo__rotulo-lista {
+  margin-top: var(--esp-2);
+  font-weight: 700;
+}
+
+.campo select[size] {
+  padding: var(--esp-1);
+}
+
+.campo select[size] option {
+  padding: var(--esp-2);
+  border-radius: 4px;
+}
+
+.fila__posicao {
+  font-size: var(--tam-h3);
+  font-weight: 700;
+}
+
+/* Risco: sempre com o texto ("Alto"); a cor só reforça */
+.risco {
+  font-weight: 700;
+}
+
+.risco--alta { color: var(--caneta-vermelha); }
+.risco--media { color: var(--tinta); }
+.risco--baixa { color: var(--grafite); }
+
+/* --- Página do cidadão (Minha consulta) ---
+   Letra maior e botões grandes, pensados para a pessoa idosa no celular.
+   O conteúdo fica numa coluna estreita, alinhada à esquerda. */
+.cidadao {
+  font-size: 1.1875rem;          /* 19px: um pouco maior que o resto do site */
+}
+
+.cidadao > * {
+  max-width: 40rem;
+}
+
+.cidadao__intro {
+  font-size: 1.25rem;
+}
+
+.cidadao__passo {
+  margin-top: var(--esp-6);
+  padding: var(--esp-5);
+  background: var(--folha);
+  border: 1px solid var(--pauta);
+  border-radius: var(--raio-painel);
+}
+
+@media (min-width: 720px) {
+  .cidadao__passo {
+    padding: var(--esp-7);
+  }
+}
+
+.cidadao__titulo {
+  margin: 0 0 var(--esp-4);
+  font-size: var(--tam-h2);
+}
+
+/* O campo do cartão: número grande, fácil de conferir */
+.cidadao .campo input[type="text"] {
+  min-height: 56px;
+  font-size: 1.5rem;
+  letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
+}
+
+.botao--grande {
+  width: 100%;
+  min-height: 56px;
+  margin-top: var(--esp-3);
+  font-size: 1.125rem;
+}
+
+.cidadao__teste {
+  margin: var(--esp-5) 0 0;
+  padding: var(--esp-3) var(--esp-4);
+  border: 2px dashed var(--pauta);
+  border-radius: var(--raio-campo);
+  color: var(--grafite);
+  font-size: 1rem;
+}
+
+/* A ficha da consulta: rótulo à esquerda, valor à direita, com pauta */
+.ficha {
+  margin: 0 0 var(--esp-5);
+  border-top: 2px solid var(--tinta);
+}
+
+.ficha__linha {
+  display: grid;
+  grid-template-columns: 7.5rem minmax(0, 1fr);
+  gap: var(--esp-3);
+  padding-block: var(--esp-3);
+  border-bottom: 1px solid var(--pauta);
+}
+
+.ficha dt {
+  color: var(--grafite);
+}
+
+.ficha dd {
+  margin: 0;
+  font-weight: 700;
+}
+
+.ficha__detalhe {
+  display: block;
+  color: var(--grafite);
+  font-weight: 400;
+}
+
+.cidadao__aviso--ok {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-2);
+  margin: 0;
+  padding: var(--esp-3) var(--esp-4);
+  border-radius: var(--raio-campo);
+  background: var(--fundo-verde);
+  color: var(--verde-confirmado);
+  font-weight: 700;
+}
+
+.cidadao__explica {
+  margin: var(--esp-2) 0 0;
+  color: var(--grafite);
+}
+
+.cidadao__destaque {
+  font-size: 1.25rem;
+}
+
+.cidadao__resultado {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-3);
+  color: var(--verde-confirmado);
+}
+
+.cidadao__resultado .icone {
+  width: 36px;
+  height: 36px;
+}
+
+.cidadao__resultado .cidadao__titulo {
+  margin: 0;
+  color: var(--tinta);
+}
+
+.cidadao__voltar {
+  margin-top: var(--esp-4);
+}
+
+.cidadao__sem-internet {
+  margin-top: var(--esp-6);
+  color: var(--grafite);
+}
+
+/* --- Um campo com o rótulo ao lado (filtro no topo da página) --- */
+.campo--em-linha {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-3);
+  margin: 0;
+}
+
+.campo--em-linha select {
+  width: auto;
+}
+
+/* --- Painel: os números do dia ---
+   Uma faixa só, dividida por linhas de pauta (não cinco cartões iguais).
+   O que pede ação tem número maior e cor; as vagas salvas, o marca-texto. */
+.resumo {
+  margin-block: var(--esp-5) var(--esp-9);
+}
+
+.resumo__lista {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 0;
+  background: var(--folha);
+  border: 1px solid var(--pauta);
+  border-radius: var(--raio-painel);
+  overflow: hidden;
+}
+
+@media (min-width: 1024px) {
+  .resumo__lista {
+    grid-template-columns: 1.3fr 1.3fr 1.2fr 1fr 1fr;
+  }
+}
+
+/* Em duas colunas, o 5º número ocuparia meia linha com um buraco ao lado */
+@media (max-width: 1023.98px) {
+  .resumo__item:last-child {
+    grid-column: 1 / -1;
+  }
+}
+
+.resumo__item {
+  padding: var(--esp-5);
+  border-right: 1px solid var(--pauta);
+  border-bottom: 1px solid var(--pauta);
+}
+
+.resumo__item dt {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-2);
+  font-weight: 700;
+}
+
+.resumo__item dd {
+  margin: var(--esp-3) 0 0;
+}
+
+.resumo__numero {
+  display: inline-block;
+  font-size: var(--tam-h1);
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.resumo__item--alerta dt,
+.resumo__item--alerta .resumo__numero {
+  color: var(--caneta-vermelha);
+}
+
+/* Vagas livres: o número fica dentro do mesmo tracejado da "Vaga livre" */
+.resumo__item--vaga .resumo__numero {
+  padding: 0 var(--esp-3);
+  border: 2px dashed var(--grafite);
+  border-radius: var(--raio-campo);
+}
+
+/* Vagas salvas: o número recebe o traço do marca-texto */
+.resumo__item--salvas .resumo__numero {
+  padding: 0 var(--esp-3);
+  background: var(--marca-texto);
+  border-radius: 4px 14px 6px 12px / 10px 5px 12px 6px;
+}
+
+.resumo__item--neutro dt {
+  color: var(--grafite);
+}
+
+.resumo__item--neutro .resumo__numero {
+  font-size: var(--tam-h2);
+}
+
+/* --- Painel: as listas --- */
+.painel__colunas {
+  display: grid;
+  gap: var(--esp-9) var(--esp-8);
+}
+
+@media (min-width: 1024px) {
+  .painel__colunas {
+    grid-template-columns: 7fr 5fr;
+  }
+}
+
+.painel__bloco > h2 {
+  margin-bottom: var(--esp-2);
+}
+
+.painel__subtitulo {
+  margin: var(--esp-6) 0 var(--esp-1);
+}
+
+.painel__dica {
+  margin: 0 0 var(--esp-3);
+  color: var(--grafite);
+  font-size: var(--tam-menor);
+}
+
+.itens {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 2px solid var(--tinta);
+}
+
+.item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--esp-3);
+  padding-block: var(--esp-4);
+  border-bottom: 1px solid var(--pauta);
+}
+
+.item__texto {
+  display: grid;
+  flex: 1 1 16rem;
+  gap: 2px;
+  justify-items: start;
+}
+
+.item__nome {
+  font-size: 1.0625rem;
+}
+
+.item__detalhe {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-1);
+  color: var(--grafite);
+  font-size: var(--tam-menor);
+}
+
+.item__acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--esp-2);
+}
+
+.item__acoes .botao--perigoso {
+  border-color: transparent;
+  background: transparent;
+  padding-inline: var(--esp-2);
+}
+
+.item__acoes .botao--perigoso:hover {
+  background: var(--fundo-vermelho);
+}
+
+.itens__vazio {
+  padding-block: var(--esp-4);
+  color: var(--grafite);
+}
+
+/* --- Relatórios --- */
+.relatorios {
+  display: grid;
+  gap: var(--esp-9) var(--esp-8);
+  margin-top: var(--esp-7);
+}
+
+@media (min-width: 1024px) {
+  .relatorios {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .relatorio--largo {
+    grid-column: 1 / -1;
+  }
+}
+
+.relatorio {
+  padding-top: var(--esp-4);
+  border-top: 2px solid var(--tinta);
+}
+
+.relatorio h2 {
+  margin-bottom: var(--esp-2);
+  font-size: var(--tam-h3);
+}
+
+/* A frase de conclusão é o mais importante do gráfico: vem antes das barras */
+.relatorio__conclusao {
+  margin: 0 0 var(--esp-4);
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.relatorio__nota {
+  margin: 0;
+  color: var(--grafite);
+  font-size: var(--tam-menor);
+}
+
+.barras {
+  display: grid;
+  gap: var(--esp-4);
+  margin: 0 0 var(--esp-4);
+  padding: 0;
+  list-style: none;
+}
+
+/* Cada barra: [rótulo | trilho com a barra | valor]. No celular, o
+   trilho desce para a linha de baixo, com a largura toda. */
+.barra {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--esp-1) var(--esp-3);
+}
+
+.barra__trilho {
+  grid-column: 1 / -1;
+  height: 20px;
+  background: var(--fundo-cinza);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.barra__valor {
+  display: block;
+  height: 100%;
+  background: var(--caneta);
+  border-radius: 4px;
+}
+
+/* Vagas liberadas: tracejado, como a "Vaga livre" */
+.barra__valor--liberada {
+  background: transparent;
+  border: 2px dashed var(--grafite);
+}
+
+/* Vagas reocupadas: o marca-texto, com contorno para aparecer sobre o trilho */
+.barra__valor--reocupada {
+  background: var(--marca-texto);
+  box-shadow: inset 0 0 0 1px var(--tinta);
+}
+
+.barra__numero {
+  font-weight: 700;
+  text-align: right;
+}
+
+.barra__detalhe {
+  display: block;
+  color: var(--grafite);
+  font-size: var(--tam-menor);
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+@media (min-width: 720px) {
+  .barra {
+    grid-template-columns: 10rem minmax(0, 1fr) 10rem;
+  }
+
+  .barra__trilho {
+    grid-column: auto;
+  }
+
+  .barra--dupla .barra__rotulo {
+    grid-row: span 2;
+  }
+}
+
+@media (max-width: 719.98px) {
+  /* barra simples: rótulo e valor na 1ª linha, trilho na 2ª */
+  .barra:not(.barra--dupla) .barra__numero {
+    grid-row: 1;
+    grid-column: 2;
+  }
+
+  .barra:not(.barra--dupla) .barra__trilho {
+    grid-row: 2;
+  }
+
+  /* barra dupla: rótulo em cima, e cada trilho com o seu valor ao lado */
+  .barra--dupla .barra__rotulo {
+    grid-column: 1 / -1;
+  }
+
+  .barra--dupla .barra__trilho {
+    grid-column: auto;
+  }
+}
+
+.legenda-barras {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--esp-2) var(--esp-5);
+  margin: 0 0 var(--esp-4);
+  padding: 0;
+  list-style: none;
+  color: var(--grafite);
+  font-size: var(--tam-menor);
+}
+
+.amostra {
+  display: inline-block;
+  width: 22px;
+  height: 12px;
+  margin-right: var(--esp-2);
+  border-radius: 3px;
+  vertical-align: middle;
+}
+
+.amostra--liberada {
+  border: 2px dashed var(--grafite);
+}
+
+.amostra--reocupada {
+  background: var(--marca-texto);
+  box-shadow: inset 0 0 0 1px var(--tinta);
+}
+
+/* Lista vazia: um retângulo tracejado, como a "vaga livre" da agenda */
+.vazio {
+  max-width: none;
+  padding: var(--esp-7) var(--esp-5);
+  border: 2px dashed var(--pauta);
+  border-radius: var(--raio-painel);
+  color: var(--grafite);
+}
+
+
+/* =====================================================================
+   15. Preferências do usuário
+   ===================================================================== */
+
+/* Movimento reduzido: o traço aparece direto, sem animação, e as
+   microinterações deixam de se mexer. */
+@media (prefers-reduced-motion: reduce) {
+  .linha--animar::before,
+  .linha--animar .troca,
+  .dialog[open],
+  .dialog--de-baixo[open],
+  .toast,
+  .campo__erro {
+    animation: none;
+  }
+
+  .linha--animar .troca--antes {
+    visibility: hidden;
+  }
+
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Alto contraste do Windows (forced-colors): o sistema troca as cores e
+   apaga os fundos. O traço amarelo sumiria, então o <mark> passa a usar
+   a cor de destaque do próprio sistema (Mark), e os status ganham borda. */
+@media (forced-colors: active) {
+  .linha--encaixe::before {
+    display: none;
+  }
+
+  .linha--encaixe mark {
+    forced-color-adjust: none;
+    padding-inline: 0.15em;
+    background: Mark;
+    color: MarkText;
+  }
+
+  .status {
+    border: 1px solid CanvasText;
+  }
+}
