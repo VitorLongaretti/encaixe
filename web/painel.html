@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Painel da recepção: Encaixe</title>
+  <meta name="description" content="O resumo do dia na UBS: quem ainda não confirmou, quais vagas estão livres e os últimos encaixes.">
+  <!-- Ícone da aba: o mesmo símbolo do logo, escrito direto aqui para funcionar em file:// -->
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2318233F'/%3E%3Cpath d='M9 16.8c3-.5 6.5-.8 10-.7' fill='none' stroke='%23EEF35A' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E">
+
+  <!-- Única exceção às regras: a fonte Atkinson Hyperlegible, do Google Fonts.
+       É só uma fonte, não uma biblioteca. Sem internet, o CSS usa a fonte do sistema. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&display=swap">
+  <link rel="stylesheet" href="css/style.css">
+
+  <!-- Avisa o CSS que o JS está ligado. Só então o menu do celular recolhe atrás
+       do botão "Menu". Sem JS, os links ficam sempre visíveis. Fica no <head>
+       para o menu não "piscar" aberto antes de fechar. -->
+  <script>document.documentElement.classList.add('js');</script>
+
+  <script src="js/dados-exemplo.js" defer></script>
+  <script src="js/validacao.js" defer></script>
+  <script src="js/regras.js" defer></script>
+  <script src="js/api.js" defer></script>
+  <script src="js/ui.js" defer></script>
+  <script src="js/paginas/painel.js" defer></script>
+</head>
+<body>
+  <a class="pular-conteudo" href="#conteudo">Pular para o conteúdo</a>
+
+  <header class="cabecalho">
+    <div class="container cabecalho__interno">
+      <a class="logo" href="index.html">
+        <!-- Símbolo: uma vaga (retângulo tracejado) sendo preenchida por um traço de marca-texto -->
+        <svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+          <rect width="32" height="32" rx="8" fill="#18233F"/>
+          <rect x="6.5" y="11" width="19" height="10" rx="2" fill="none" stroke="#FFFFFF" stroke-width="1.5" stroke-dasharray="3 2.2"/>
+          <path d="M9 16.8c3-.5 6.5-.8 10-.7" fill="none" stroke="#EEF35A" stroke-width="5" stroke-linecap="round"/>
+        </svg>
+        <span>Encaixe</span>
+      </a>
+
+      <button class="botao botao--secundario menu-botao" type="button" aria-expanded="false" aria-controls="menu-principal">Menu</button>
+
+      <nav class="menu" id="menu-principal" aria-label="Principal">
+        <ul class="menu__lista">
+          <li><a href="index.html">Início</a></li>
+          <li><a href="painel.html" aria-current="page">Painel</a></li>
+          <li><a href="agenda.html">Agenda</a></li>
+          <li><a href="fila.html">Fila</a></li>
+          <li><a href="pacientes.html">Pacientes</a></li>
+          <li><a href="relatorios.html">Relatórios</a></li>
+          <li class="menu__item-cidadao"><a class="menu__cidadao" href="minha-consulta.html">Minha consulta</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main id="conteudo" class="container pagina">
+    <div class="pagina__topo">
+      <h1>Painel da recepção</h1>
+      <div class="campo campo--em-linha">
+        <label for="painel-ubs">UBS</label>
+        <select id="painel-ubs"></select>
+      </div>
+    </div>
+    <p class="pagina__intro" id="painel-hoje"></p>
+
+    <!-- ===== Números do dia =====
+         Não são cinco cartões iguais: as não confirmadas e as vagas livres
+         (o que pede ação agora) têm mais destaque, e as vagas salvas levam
+         o marca-texto, como todo encaixe. -->
+    <section class="resumo" aria-labelledby="resumo-titulo">
+      <h2 class="so-leitor" id="resumo-titulo">Números do dia</h2>
+      <dl class="resumo__lista" id="resumo"></dl>
+    </section>
+
+    <div class="painel__colunas">
+      <section class="painel__bloco" aria-labelledby="atencao-titulo">
+        <h2 id="atencao-titulo">Precisa de atenção</h2>
+
+        <h3 class="painel__subtitulo">Não confirmadas</h3>
+        <p class="painel__dica">Consultas de hoje e de amanhã que ainda não foram confirmadas. Vale ligar para a pessoa.</p>
+        <ul class="itens" id="lista-nao-confirmadas"></ul>
+
+        <h3 class="painel__subtitulo">Vagas livres</h3>
+        <p class="painel__dica">Horários cancelados que ainda podem ir para alguém da fila.</p>
+        <ul class="itens" id="lista-vagas"></ul>
+      </section>
+
+      <section class="painel__bloco" aria-labelledby="encaixes-titulo">
+        <h2 id="encaixes-titulo">Últimos encaixes</h2>
+        <p class="painel__dica">Quem ocupou uma vaga livre, e quanto tempo esperou na fila.</p>
+        <ol class="itens" id="lista-encaixes"></ol>
+      </section>
+    </div>
+  </main>
+
+  <footer class="rodape">
+    <div class="container rodape__interno">
+      <div>
+        <p>Projeto acadêmico da Global Solution FIAP 2026/2. Dados fictícios para demonstração.</p>
+        <!-- É um <button> porque abre um dialog, e não leva a outra página -->
+        <button class="link-botao" type="button" data-abrir-dialog="dialog-restaurar">Restaurar dados de demonstração</button>
+      </div>
+      <div>
+        <p class="rodape__titulo">Grupo</p>
+        <!-- Preencher com os nomes e RMs dos integrantes -->
+        <ul class="rodape__nomes">
+          <li>Nome do integrante, RM 000000</li>
+          <li>Nome do integrante, RM 000000</li>
+          <li>Nome do integrante, RM 000000</li>
+        </ul>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Confirmação de "Restaurar dados". O <form method="dialog"> fecha a janela
+       sozinho, e o value do botão clicado diz ao JS o que a pessoa escolheu. -->
+  <dialog class="dialog" id="dialog-restaurar" aria-labelledby="dialog-restaurar-titulo">
+    <form method="dialog">
+      <h2 class="dialog__titulo" id="dialog-restaurar-titulo">Restaurar dados de demonstração?</h2>
+      <p>Tudo o que foi cadastrado ou alterado nesta demonstração será apagado, e os dados de exemplo voltam ao estado inicial.</p>
+      <div class="dialog__acoes">
+        <button class="botao botao--secundario" type="submit" value="cancelar" autofocus>Manter os dados atuais</button>
+        <button class="botao botao--perigoso" type="submit" value="restaurar">Restaurar dados</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- ===== Cancelar consulta (o mesmo da Agenda) ===== -->
+  <dialog class="dialog" id="dialog-cancelar" aria-labelledby="dialog-cancelar-titulo" aria-describedby="dialog-cancelar-texto">
+    <form method="dialog" id="formulario-cancelar">
+      <h2 class="dialog__titulo" id="dialog-cancelar-titulo">Cancelar consulta?</h2>
+      <p id="dialog-cancelar-texto"></p>
+      <div class="dialog__acoes">
+        <button class="botao botao--secundario" type="submit" value="manter" autofocus>Manter consulta</button>
+        <button class="botao botao--perigoso" type="submit" value="cancelar">Cancelar consulta</button>
+      </div>
+    </form>
+  </dialog>
+</body>
+</html>

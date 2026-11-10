@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pacientes: Encaixe</title>
+  <meta name="description" content="O cadastro dos pacientes atendidos pelas UBS.">
+  <!-- Ícone da aba: o mesmo símbolo do logo, escrito direto aqui para funcionar em file:// -->
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2318233F'/%3E%3Cpath d='M9 16.8c3-.5 6.5-.8 10-.7' fill='none' stroke='%23EEF35A' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E">
+
+  <!-- Única exceção às regras: a fonte Atkinson Hyperlegible, do Google Fonts.
+       É só uma fonte, não uma biblioteca. Sem internet, o CSS usa a fonte do sistema. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&display=swap">
+  <link rel="stylesheet" href="css/style.css">
+
+  <!-- Avisa o CSS que o JS está ligado. Só então o menu do celular recolhe atrás
+       do botão "Menu". Sem JS, os links ficam sempre visíveis. Fica no <head>
+       para o menu não "piscar" aberto antes de fechar. -->
+  <script>document.documentElement.classList.add('js');</script>
+
+  <script src="js/dados-exemplo.js" defer></script>
+  <script src="js/validacao.js" defer></script>
+  <script src="js/regras.js" defer></script>
+  <script src="js/api.js" defer></script>
+  <script src="js/ui.js" defer></script>
+  <script src="js/paginas/pacientes.js" defer></script>
+</head>
+<body>
+  <a class="pular-conteudo" href="#conteudo">Pular para o conteúdo</a>
+
+  <header class="cabecalho">
+    <div class="container cabecalho__interno">
+      <a class="logo" href="index.html">
+        <!-- Símbolo: uma vaga (retângulo tracejado) sendo preenchida por um traço de marca-texto -->
+        <svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+          <rect width="32" height="32" rx="8" fill="#18233F"/>
+          <rect x="6.5" y="11" width="19" height="10" rx="2" fill="none" stroke="#FFFFFF" stroke-width="1.5" stroke-dasharray="3 2.2"/>
+          <path d="M9 16.8c3-.5 6.5-.8 10-.7" fill="none" stroke="#EEF35A" stroke-width="5" stroke-linecap="round"/>
+        </svg>
+        <span>Encaixe</span>
+      </a>
+
+      <button class="botao botao--secundario menu-botao" type="button" aria-expanded="false" aria-controls="menu-principal">Menu</button>
+
+      <nav class="menu" id="menu-principal" aria-label="Principal">
+        <ul class="menu__lista">
+          <li><a href="index.html">Início</a></li>
+          <li><a href="painel.html">Painel</a></li>
+          <li><a href="agenda.html">Agenda</a></li>
+          <li><a href="fila.html">Fila</a></li>
+          <li><a href="pacientes.html" aria-current="page">Pacientes</a></li>
+          <li><a href="relatorios.html">Relatórios</a></li>
+          <li class="menu__item-cidadao"><a class="menu__cidadao" href="minha-consulta.html">Minha consulta</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main id="conteudo" class="container pagina">
+    <h1>Pacientes</h1>
+    <p class="pagina__intro">O cadastro das pessoas atendidas pelas UBS. O Encaixe guarda só o necessário para marcar e confirmar consultas: nenhum diagnóstico.</p>
+
+    <!-- ===== Formulário: cadastrar e editar =====
+         novalidate desliga os balões de erro do navegador: a validação é
+         toda em JS (validacao.js), com as mensagens na própria página.
+         Cada campo fica dentro de um elemento com data-campo="nome-do-campo",
+         que é como o ui.js encontra onde mostrar o erro. -->
+    <section class="formulario-painel" aria-labelledby="formulario-titulo">
+      <h2 class="formulario-painel__titulo" id="formulario-titulo">Cadastrar paciente</h2>
+
+      <form id="formulario-paciente" novalidate>
+        <div class="formulario__grupos">
+
+          <fieldset class="grupo">
+            <legend>Dados pessoais</legend>
+
+            <div class="campo" data-campo="nome">
+              <label for="campo-nome">Nome completo</label>
+              <input type="text" id="campo-nome" name="nome" maxlength="100" autocomplete="off" aria-describedby="erro-nome">
+              <p class="campo__erro" id="erro-nome"></p>
+            </div>
+
+            <div class="campo" data-campo="cpf">
+              <label for="campo-cpf">CPF</label>
+              <input type="text" id="campo-cpf" name="cpf" inputmode="numeric" autocomplete="off" aria-describedby="erro-cpf">
+              <p class="campo__erro" id="erro-cpf"></p>
+            </div>
+
+            <div class="campo" data-campo="cartaoSus">
+              <label for="campo-cartao">Cartão SUS</label>
+              <p class="campo__dica" id="dica-cartao">Os 15 números que aparecem no cartão.</p>
+              <input type="text" id="campo-cartao" name="cartaoSus" inputmode="numeric" autocomplete="off" aria-describedby="dica-cartao erro-cartao">
+              <p class="campo__erro" id="erro-cartao"></p>
+            </div>
+
+            <div class="campo" data-campo="dataNascimento">
+              <label for="campo-nascimento">Data de nascimento</label>
+              <input type="date" id="campo-nascimento" name="dataNascimento" aria-describedby="erro-nascimento">
+              <p class="campo__erro" id="erro-nascimento"></p>
+            </div>
+          </fieldset>
+
+          <fieldset class="grupo">
+            <legend>Contato</legend>
+
+            <div class="campo" data-campo="telefone">
+              <label for="campo-telefone">Telefone com DDD</label>
+              <input type="tel" id="campo-telefone" name="telefone" inputmode="numeric" autocomplete="off" aria-describedby="erro-telefone">
+              <p class="campo__erro" id="erro-telefone"></p>
+            </div>
+
+            <!-- O bairro é uma lista fechada porque o encaixe compara o bairro
+                 do paciente com o da UBS: com texto livre, "itaquera" e
+                 "Itaquera" seriam bairros diferentes. -->
+            <div class="campo" data-campo="bairro">
+              <label for="campo-bairro">Bairro</label>
+              <select id="campo-bairro" name="bairro" aria-describedby="erro-bairro">
+                <option value="">Escolha o bairro</option>
+                <option>Artur Alvim</option>
+                <option>Cidade Tiradentes</option>
+                <option>Guaianases</option>
+                <option>Itaquera</option>
+                <option>José Bonifácio</option>
+                <option>São Mateus</option>
+              </select>
+              <p class="campo__erro" id="erro-bairro"></p>
+            </div>
+
+            <fieldset class="campo campo--opcoes" data-campo="contatoPreferido" aria-describedby="erro-contato">
+              <legend>Como prefere receber os avisos?</legend>
+              <div class="opcoes-em-linha">
+                <label class="opcao"><input type="radio" name="contatoPreferido" value="WHATSAPP"> WhatsApp</label>
+                <label class="opcao"><input type="radio" name="contatoPreferido" value="TELEFONE"> Ligação</label>
+                <label class="opcao"><input type="radio" name="contatoPreferido" value="SMS"> SMS</label>
+              </div>
+              <p class="campo__erro" id="erro-contato"></p>
+            </fieldset>
+          </fieldset>
+
+          <fieldset class="grupo">
+            <legend>Prioridade e encaixe</legend>
+            <p class="campo__dica">Têm prioridade legal as pessoas com 60 anos ou mais, gestantes e pessoas com deficiência. A idade vem da data de nascimento.</p>
+
+            <label class="opcao"><input type="checkbox" name="gestante"> Gestante</label>
+            <label class="opcao"><input type="checkbox" name="pcd"> Pessoa com deficiência (PcD)</label>
+
+            <div class="campo campo--destaque">
+              <label class="opcao"><input type="checkbox" name="aceitaEncaixe" aria-describedby="dica-encaixe"> Pode ir a uma consulta marcada em cima da hora</label>
+              <p class="campo__dica" id="dica-encaixe">Só quem marca esta opção é chamado quando surge uma vaga livre.</p>
+            </div>
+          </fieldset>
+        </div>
+
+        <!-- Erros que não são de um campo só (ex.: o paciente foi excluído enquanto era editado) -->
+        <p class="formulario__aviso" id="aviso-formulario" role="alert"></p>
+
+        <div class="formulario__acoes">
+          <button class="botao botao--primario" type="submit" id="botao-salvar">Salvar paciente</button>
+          <button class="botao botao--secundario" type="button" id="botao-cancelar-edicao" hidden>Cancelar edição</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- ===== Lista ===== -->
+    <section class="lista" aria-labelledby="lista-titulo">
+      <div class="lista__topo">
+        <h2 id="lista-titulo" tabindex="-1">Pacientes cadastrados</h2>
+        <div class="campo busca">
+          <label for="campo-busca">Buscar por nome, CPF ou cartão SUS</label>
+          <input type="search" id="campo-busca" autocomplete="off">
+        </div>
+      </div>
+
+      <!-- aria-live: o leitor de tela anuncia quantos pacientes a busca encontrou -->
+      <p class="lista__contagem" id="contagem" aria-live="polite"></p>
+
+      <div class="tabela-moldura" id="moldura-tabela">
+        <table class="tabela">
+          <caption class="so-leitor">Pacientes cadastrados, em ordem alfabética</caption>
+          <thead>
+            <tr>
+              <th scope="col">Nome</th>
+              <th scope="col">Documentos</th>
+              <th scope="col">Nascimento</th>
+              <th scope="col">Telefone</th>
+              <th scope="col">Bairro</th>
+              <th scope="col"><span class="so-leitor">Ações</span></th>
+            </tr>
+          </thead>
+          <tbody id="lista-pacientes"></tbody>
+        </table>
+      </div>
+
+      <p class="vazio" id="lista-vazia" hidden></p>
+    </section>
+  </main>
+
+  <footer class="rodape">
+    <div class="container rodape__interno">
+      <div>
+        <p>Projeto acadêmico da Global Solution FIAP 2026/2. Dados fictícios para demonstração.</p>
+        <!-- É um <button> porque abre um dialog, e não leva a outra página -->
+        <button class="link-botao" type="button" data-abrir-dialog="dialog-restaurar">Restaurar dados de demonstração</button>
+      </div>
+      <div>
+        <p class="rodape__titulo">Grupo</p>
+        <!-- Preencher com os nomes e RMs dos integrantes -->
+        <ul class="rodape__nomes">
+          <li>Nome do integrante, RM 000000</li>
+          <li>Nome do integrante, RM 000000</li>
+          <li>Nome do integrante, RM 000000</li>
+        </ul>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Confirmação de "Restaurar dados". O <form method="dialog"> fecha a janela
+       sozinho, e o value do botão clicado diz ao JS o que a pessoa escolheu. -->
+  <dialog class="dialog" id="dialog-restaurar" aria-labelledby="dialog-restaurar-titulo">
+    <form method="dialog">
+      <h2 class="dialog__titulo" id="dialog-restaurar-titulo">Restaurar dados de demonstração?</h2>
+      <p>Tudo o que foi cadastrado ou alterado nesta demonstração será apagado, e os dados de exemplo voltam ao estado inicial.</p>
+      <div class="dialog__acoes">
+        <button class="botao botao--secundario" type="submit" value="cancelar" autofocus>Manter os dados atuais</button>
+        <button class="botao botao--perigoso" type="submit" value="restaurar">Restaurar dados</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Confirmação de exclusão. Se a regra 6 bloquear (consultas futuras ou
+       fila), a mensagem aparece aqui dentro e a janela continua aberta. -->
+  <dialog class="dialog" id="dialog-excluir" aria-labelledby="dialog-excluir-titulo" aria-describedby="dialog-excluir-texto">
+    <form method="dialog" id="formulario-excluir">
+      <h2 class="dialog__titulo" id="dialog-excluir-titulo">Excluir paciente?</h2>
+      <p id="dialog-excluir-texto"></p>
+      <p class="dialog__erro" id="dialog-excluir-erro" role="alert"></p>
+      <div class="dialog__acoes">
+        <button class="botao botao--secundario" type="submit" value="cancelar" id="botao-manter" autofocus>Manter paciente</button>
+        <button class="botao botao--perigoso" type="submit" value="excluir" id="botao-excluir">Excluir paciente</button>
+      </div>
+    </form>
+  </dialog>
+</body>
+</html>

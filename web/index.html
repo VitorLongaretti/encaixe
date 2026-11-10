@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Encaixe: quando alguém falta, outra pessoa é atendida</title>
+  <meta name="description" content="O Encaixe confirma as consultas da UBS e, quando alguém cancela, oferece a vaga para quem mais precisa na fila.">
+  <!-- Ícone da aba: o mesmo símbolo do logo, escrito direto aqui para funcionar em file:// -->
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2318233F'/%3E%3Cpath d='M9 16.8c3-.5 6.5-.8 10-.7' fill='none' stroke='%23EEF35A' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E">
+
+  <!-- Única exceção às regras: a fonte Atkinson Hyperlegible, do Google Fonts.
+       É só uma fonte, não uma biblioteca. Sem internet, o CSS usa a fonte do sistema. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&display=swap">
+  <link rel="stylesheet" href="css/style.css">
+
+  <!-- Avisa o CSS que o JS está ligado. Só então o menu do celular recolhe atrás
+       do botão "Menu". Sem JS, os links ficam sempre visíveis. Fica no <head>
+       para o menu não "piscar" aberto antes de fechar. -->
+  <script>document.documentElement.classList.add('js');</script>
+
+  <script src="js/dados-exemplo.js" defer></script>
+  <script src="js/validacao.js" defer></script>
+  <script src="js/regras.js" defer></script>
+  <script src="js/api.js" defer></script>
+  <script src="js/ui.js" defer></script>
+  <script src="js/paginas/inicio.js" defer></script>
+</head>
+<body>
+  <a class="pular-conteudo" href="#conteudo">Pular para o conteúdo</a>
+
+  <header class="cabecalho">
+    <div class="container cabecalho__interno">
+      <a class="logo" href="index.html">
+        <!-- Símbolo: uma vaga (retângulo tracejado) sendo preenchida por um traço de marca-texto -->
+        <svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+          <rect width="32" height="32" rx="8" fill="#18233F"/>
+          <rect x="6.5" y="11" width="19" height="10" rx="2" fill="none" stroke="#FFFFFF" stroke-width="1.5" stroke-dasharray="3 2.2"/>
+          <path d="M9 16.8c3-.5 6.5-.8 10-.7" fill="none" stroke="#EEF35A" stroke-width="5" stroke-linecap="round"/>
+        </svg>
+        <span>Encaixe</span>
+      </a>
+
+      <button class="botao botao--secundario menu-botao" type="button" aria-expanded="false" aria-controls="menu-principal">Menu</button>
+
+      <nav class="menu" id="menu-principal" aria-label="Principal">
+        <ul class="menu__lista">
+          <li><a href="index.html" aria-current="page">Início</a></li>
+          <li><a href="painel.html">Painel</a></li>
+          <li><a href="agenda.html">Agenda</a></li>
+          <li><a href="fila.html">Fila</a></li>
+          <li><a href="pacientes.html">Pacientes</a></li>
+          <li><a href="relatorios.html">Relatórios</a></li>
+          <li class="menu__item-cidadao"><a class="menu__cidadao" href="minha-consulta.html">Minha consulta</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main id="conteudo">
+
+    <!-- ===== Hero ===== -->
+    <section class="hero" aria-labelledby="hero-titulo">
+      <div class="container grade">
+        <div class="hero__texto">
+          <h1 id="hero-titulo">
+            <span class="hero__titulo-linha">Quando alguém falta,</span>
+            <span class="hero__titulo-linha">outra pessoa é atendida.</span>
+          </h1>
+          <p class="abertura">O Encaixe confirma as consultas até a véspera e, quando alguém cancela, oferece a vaga para quem mais precisa na fila.</p>
+          <p class="hero__complemento">Feito para a recepção da UBS e para o paciente, que confirma ou cancela pelo celular só com o cartão SUS.</p>
+          <div class="hero__acoes">
+            <a class="botao botao--primario" href="agenda.html">Abrir a agenda</a>
+            <a class="botao botao--secundario" href="minha-consulta.html">Confirmar minha consulta</a>
+          </div>
+        </div>
+
+        <!-- Demonstração: é a mesma folha (mesmas classes) da Agenda real.
+             A animação é feita só com CSS (seção 10 do style.css), então
+             funciona mesmo sem JS e roda uma vez só, 1,2s depois de carregar. -->
+        <figure class="hero__demo">
+          <div class="folha">
+            <div class="folha__cabecalho">
+              <p class="folha__dia">Terça-feira, 10 de novembro</p>
+              <p class="folha__local">UBS Jardim das Flores, Ortopedia</p>
+            </div>
+            <ol class="folha__linhas">
+              <li class="linha linha--extra">
+                <time class="linha__hora" datetime="2026-11-10T08:40">08:40</time>
+                <span class="linha__paciente">José Carlos Pereira</span>
+                <span class="linha__status">
+                  <span class="status status--confirmada"><svg class="icone" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Confirmada</span>
+                </span>
+              </li>
+              <li class="linha">
+                <time class="linha__hora" datetime="2026-11-10T09:00">09:00</time>
+                <span class="linha__paciente">Ana Paula Ribeiro</span>
+                <span class="linha__status">
+                  <span class="status status--confirmada"><svg class="icone" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Confirmada</span>
+                </span>
+              </li>
+
+              <!-- A linha que se transforma: começa como "Vaga livre" e vira o encaixe de Maria.
+                   A camada "antes" fica escondida do leitor de tela (aria-hidden), que lê
+                   o resultado final e a legenda da figura. -->
+              <li class="linha linha--encaixe linha--animar">
+                <time class="linha__hora" datetime="2026-11-10T09:20">09:20</time>
+                <span class="linha__paciente">
+                  <span class="troca troca--antes" aria-hidden="true">
+                    <span class="vaga-livre">Vaga livre</span>
+                    <span class="linha__nota">Carlos Henrique cancelou</span>
+                  </span>
+                  <mark class="troca troca--depois">Maria Aparecida Souza</mark>
+                </span>
+                <span class="linha__status">
+                  <span class="status status--encaixe troca troca--depois"><svg class="icone" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 5v14M5 12h14"/></svg>Encaixe</span>
+                </span>
+              </li>
+
+              <li class="linha">
+                <time class="linha__hora" datetime="2026-11-10T09:40">09:40</time>
+                <span class="linha__paciente">Rosângela Alves</span>
+                <span class="linha__status">
+                  <span class="status status--agendada"><svg class="icone" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="4" y="5.5" width="16" height="14.5" rx="2.5"/><path d="M4 10h16M8.5 3.5v4M15.5 3.5v4"/></svg>Agendada</span>
+                </span>
+              </li>
+              <li class="linha linha--extra">
+                <time class="linha__hora" datetime="2026-11-10T10:00">10:00</time>
+                <span class="linha__paciente">Francisco Lopes</span>
+                <span class="linha__status">
+                  <span class="status status--nao-confirmada"><svg class="icone" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>Não confirmada</span>
+                </span>
+              </li>
+            </ol>
+          </div>
+          <figcaption class="legenda">Carlos Henrique cancelou a consulta das 9h20. A vaga foi para Maria Aparecida, que esperava havia 14 meses na fila de Ortopedia.</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <!-- ===== O problema ===== -->
+    <section class="secao" aria-labelledby="problema-titulo">
+      <div class="container grade">
+        <div class="problema__texto">
+          <h2 id="problema-titulo">A fila espera anos, e as vagas ficam vazias</h2>
+          <p>Em junho de 2026, <strong class="numero">430.223 pessoas</strong> esperavam uma consulta com especialista na cidade de São Paulo. <strong class="numero">119</strong> delas esperavam havia cinco anos.</p>
+          <p class="fonte">Fonte: <a href="https://www.poder360.com.br/opiniao/fila-por-especialista-em-sao-paulo-tem-espera-de-ate-5-anos/">Poder360, com dados da Secretaria Municipal da Saúde obtidos via Lei de Acesso à Informação</a></p>
+          <p>Ao mesmo tempo, cerca de <strong>uma em cada quatro</strong> consultas do SUS termina em falta. Os motivos mais comuns são o esquecimento e a falta de transporte.</p>
+          <p class="fonte">Fonte: <a href="https://revistas.usp.br/rmrp/article/download/159626/154332/356524">Revista de Medicina de Ribeirão Preto, da USP</a></p>
+          <p>Quando alguém cancela em cima da hora ou não aparece, a vaga se perde, porque ninguém da fila fica sabendo dela.</p>
+        </div>
+
+        <figure class="problema__figura">
+          <div class="folha">
+            <div class="folha__cabecalho">
+              <p class="folha__dia">Uma manhã comum, sem o Encaixe</p>
+              <p class="folha__local">Quatro consultas marcadas</p>
+            </div>
+            <ol class="folha__linhas">
+              <li class="linha">
+                <time class="linha__hora">07:00</time>
+                <span class="linha__paciente">Benedita Ramos</span>
+                <span class="linha__status">
+                  <span class="status status--atendida"><svg class="icone" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 20c.8-3.8 3.6-6 7-6s6.2 2.2 7 6"/></svg>Atendida</span>
+                </span>
+              </li>
+              <li class="linha">
+                <time class="linha__hora">07:20</time>
+                <span class="linha__paciente">
+                  <span>Jorge Antunes</span>
+                  <span class="linha__nota">A vaga ficou vazia</span>
+                </span>
+                <span class="linha__status">
+                  <span class="status status--faltou"><svg class="icone" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 7l10 10M17 7L7 17"/></svg>Faltou</span>
+                </span>
+              </li>
+              <li class="linha">
+                <time class="linha__hora">07:40</time>
+                <span class="linha__paciente">Cláudia Nunes</span>
+                <span class="linha__status">
+                  <span class="status status--atendida"><svg class="icone" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 20c.8-3.8 3.6-6 7-6s6.2 2.2 7 6"/></svg>Atendida</span>
+                </span>
+              </li>
+              <li class="linha">
+                <time class="linha__hora">08:00</time>
+                <span class="linha__paciente">Marcos Vieira</span>
+                <span class="linha__status">
+                  <span class="status status--atendida"><svg class="icone" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 20c.8-3.8 3.6-6 7-6s6.2 2.2 7 6"/></svg>Atendida</span>
+                </span>
+              </li>
+            </ol>
+          </div>
+          <figcaption class="legenda">Em média, uma em cada quatro consultas termina em falta. Sem aviso, a vaga não volta para a fila.</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <!-- ===== Como funciona =====
+         Aqui a numeração faz sentido: é uma sequência de verdade.
+         Cada passo mostra a MESMA linha das 9h20 em um estado diferente. -->
+    <section class="secao" aria-labelledby="como-titulo">
+      <div class="container">
+        <h2 id="como-titulo">Como funciona</h2>
+        <p class="abertura">A mesma consulta das 9h20, do aviso até o encaixe.</p>
+
+        <ol class="passos">
+          <li class="passo">
+            <span class="passo__numero" aria-hidden="true">1</span>
+            <h3>Confirmar até a véspera</h3>
+            <p>Toda consulta precisa ser confirmada até o dia anterior, pelo celular ou por telefone com a recepção. Se não for, a recepção vê na hora quem ainda não confirmou.</p>
+            <div class="folha folha--avulsa">
+              <div class="linha">
+                <span class="linha__hora">09:20</span>
+                <span class="linha__paciente">Carlos Henrique Lima</span>
+                <span class="linha__status">
+                  <span class="status status--nao-confirmada"><svg class="icone" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>Não confirmada</span>
+                </span>
+              </div>
+            </div>
+          </li>
+          <li class="passo">
+            <span class="passo__numero" aria-hidden="true">2</span>
+            <h3>Liberar a vaga quando alguém cancela</h3>
+            <p>Quem não vai poder ir cancela pelo celular ou avisa a recepção. O horário vira uma vaga livre, em vez de ficar vazio.</p>
+            <div class="folha folha--avulsa">
+              <div class="linha">
+                <span class="linha__hora">09:20</span>
+                <span class="linha__paciente">
+                  <span class="vaga-livre">Vaga livre</span>
+                </span>
+                <span class="linha__status"></span>
+              </div>
+            </div>
+          </li>
+          <li class="passo">
+            <span class="passo__numero" aria-hidden="true">3</span>
+            <h3>Encaixar quem está na fila</h3>
+            <p>O Encaixe lista quem pode ocupar a vaga, nesta ordem: risco, prioridade legal, bairro e tempo de espera. A recepção liga, e quem aceita é encaixado.</p>
+            <div class="folha folha--avulsa">
+              <div class="linha linha--encaixe">
+                <span class="linha__hora">09:20</span>
+                <span class="linha__paciente"><mark>Maria Aparecida Souza</mark></span>
+                <span class="linha__status">
+                  <span class="status status--encaixe"><svg class="icone" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 5v14M5 12h14"/></svg>Encaixe</span>
+                </span>
+              </div>
+            </div>
+          </li>
+        </ol>
+
+        <p>Já existe evidência de que funciona: numa UBS da Zona Sul de São Paulo, juntar a confirmação com a reposição das vagas teve alto impacto com baixo custo, e o modelo foi levado para outras UBS.</p>
+        <p class="fonte">Fonte: <a href="https://evento.cejam.org.br/index.php/AECC/article/view/990/964">CEJAM, Centro de Estudos e Pesquisas Dr. João Amorim</a></p>
+      </div>
+    </section>
+
+    <!-- ===== Quem participa ===== -->
+    <section class="secao" aria-labelledby="quem-titulo">
+      <div class="container">
+        <h2 id="quem-titulo">Quem participa</h2>
+        <dl class="papeis">
+          <div class="papel">
+            <dt>O paciente</dt>
+            <dd>Confirma ou cancela a consulta pelo celular, só com o cartão SUS. Quem não tem internet resolve por telefone com a recepção.</dd>
+          </div>
+          <div class="papel">
+            <dt>A recepção da UBS</dt>
+            <dd>Acompanha a agenda do dia, liga para quem ainda não confirmou e encaixa a pessoa certa quando surge uma vaga.</dd>
+          </div>
+          <div class="papel">
+            <dt>A Secretaria de Saúde</dt>
+            <dd>Vê nos relatórios por que as pessoas faltam em cada UBS e onde a fila está maior, para decidir onde agir primeiro.</dd>
+          </div>
+        </dl>
+      </div>
+    </section>
+
+    <!-- ===== Impacto ===== -->
+    <section class="secao" aria-labelledby="impacto-titulo">
+      <div class="container">
+        <h2 id="impacto-titulo">O impacto que dá para medir</h2>
+        <p>O Encaixe contribui com dois Objetivos de Desenvolvimento Sustentável da ONU. O <strong>ODS 3, Saúde e bem-estar</strong>, porque mais gente é atendida com as mesmas vagas. E o <strong>ODS 10, Redução das desigualdades</strong>, porque a regra de encaixe chama primeiro quem tem risco maior e quem tem prioridade legal.</p>
+
+        <div class="tabela-moldura impacto__tabela">
+          <table class="tabela">
+            <caption>Como medimos o impacto</caption>
+            <thead>
+              <tr>
+                <th scope="col">Indicador</th>
+                <th scope="col">Como medimos</th>
+                <th scope="col">Onde ver</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row">Vagas salvas</th>
+                <td data-label="Como medimos">Consultas canceladas que foram ocupadas de novo por um encaixe.</td>
+                <td data-label="Onde ver"><a href="relatorios.html">Relatórios, reaproveitamento</a></td>
+              </tr>
+              <tr>
+                <th scope="row">Taxa de falta</th>
+                <td data-label="Como medimos">Faltas divididas pelo total de consultas, por UBS e por especialidade.</td>
+                <td data-label="Onde ver"><a href="relatorios.html">Relatórios, faltas</a></td>
+              </tr>
+              <tr>
+                <th scope="row">Tempo de espera</th>
+                <td data-label="Como medimos">Tempo médio na fila de espera, por especialidade.</td>
+                <td data-label="Onde ver"><a href="relatorios.html">Relatórios, fila</a></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p>Os dados do cidadão ficam protegidos: o Encaixe guarda só a agenda, ou seja, quem, quando, qual especialidade e a classificação de risco. Diagnóstico nunca entra no sistema.</p>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="rodape">
+    <div class="container rodape__interno">
+      <div>
+        <p>Projeto acadêmico da Global Solution FIAP 2026/2. Dados fictícios para demonstração.</p>
+        <!-- É um <button> porque abre um dialog, e não leva a outra página -->
+        <button class="link-botao" type="button" data-abrir-dialog="dialog-restaurar">Restaurar dados de demonstração</button>
+      </div>
+      <div>
+        <p class="rodape__titulo">Grupo</p>
+        <!-- Preencher com os nomes e RMs dos integrantes -->
+        <ul class="rodape__nomes">
+          <li>Nome do integrante, RM 000000</li>
+          <li>Nome do integrante, RM 000000</li>
+          <li>Nome do integrante, RM 000000</li>
+        </ul>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Confirmação de "Restaurar dados". O <form method="dialog"> fecha a janela
+       sozinho, e o value do botão clicado diz ao JS o que a pessoa escolheu. -->
+  <dialog class="dialog" id="dialog-restaurar" aria-labelledby="dialog-restaurar-titulo">
+    <form method="dialog">
+      <h2 class="dialog__titulo" id="dialog-restaurar-titulo">Restaurar dados de demonstração?</h2>
+      <p>Tudo o que foi cadastrado ou alterado nesta demonstração será apagado, e os dados de exemplo voltam ao estado inicial.</p>
+      <div class="dialog__acoes">
+        <button class="botao botao--secundario" type="submit" value="cancelar" autofocus>Manter os dados atuais</button>
+        <button class="botao botao--perigoso" type="submit" value="restaurar">Restaurar dados</button>
+      </div>
+    </form>
+  </dialog>
+</body>
+</html>

@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Agenda do dia: Encaixe</title>
+  <meta name="description" content="A folha do dia, horário por horário. Quando alguém cancela, é aqui que a vaga é encaixada.">
+  <!-- Ícone da aba: o mesmo símbolo do logo, escrito direto aqui para funcionar em file:// -->
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2318233F'/%3E%3Cpath d='M9 16.8c3-.5 6.5-.8 10-.7' fill='none' stroke='%23EEF35A' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E">
+
+  <!-- Única exceção às regras: a fonte Atkinson Hyperlegible, do Google Fonts.
+       É só uma fonte, não uma biblioteca. Sem internet, o CSS usa a fonte do sistema. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&display=swap">
+  <link rel="stylesheet" href="css/style.css">
+
+  <!-- Avisa o CSS que o JS está ligado. Só então o menu do celular recolhe atrás
+       do botão "Menu". Sem JS, os links ficam sempre visíveis. Fica no <head>
+       para o menu não "piscar" aberto antes de fechar. -->
+  <script>document.documentElement.classList.add('js');</script>
+
+  <script src="js/dados-exemplo.js" defer></script>
+  <script src="js/validacao.js" defer></script>
+  <script src="js/regras.js" defer></script>
+  <script src="js/api.js" defer></script>
+  <script src="js/ui.js" defer></script>
+  <script src="js/paginas/agenda.js" defer></script>
+</head>
+<body>
+  <a class="pular-conteudo" href="#conteudo">Pular para o conteúdo</a>
+
+  <header class="cabecalho">
+    <div class="container cabecalho__interno">
+      <a class="logo" href="index.html">
+        <!-- Símbolo: uma vaga (retângulo tracejado) sendo preenchida por um traço de marca-texto -->
+        <svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+          <rect width="32" height="32" rx="8" fill="#18233F"/>
+          <rect x="6.5" y="11" width="19" height="10" rx="2" fill="none" stroke="#FFFFFF" stroke-width="1.5" stroke-dasharray="3 2.2"/>
+          <path d="M9 16.8c3-.5 6.5-.8 10-.7" fill="none" stroke="#EEF35A" stroke-width="5" stroke-linecap="round"/>
+        </svg>
+        <span>Encaixe</span>
+      </a>
+
+      <button class="botao botao--secundario menu-botao" type="button" aria-expanded="false" aria-controls="menu-principal">Menu</button>
+
+      <nav class="menu" id="menu-principal" aria-label="Principal">
+        <ul class="menu__lista">
+          <li><a href="index.html">Início</a></li>
+          <li><a href="painel.html">Painel</a></li>
+          <li><a href="agenda.html" aria-current="page">Agenda</a></li>
+          <li><a href="fila.html">Fila</a></li>
+          <li><a href="pacientes.html">Pacientes</a></li>
+          <li><a href="relatorios.html">Relatórios</a></li>
+          <li class="menu__item-cidadao"><a class="menu__cidadao" href="minha-consulta.html">Minha consulta</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main id="conteudo" class="container pagina">
+    <div class="pagina__topo">
+      <h1>Agenda do dia</h1>
+      <button class="botao botao--primario" type="button" id="botao-agendar"><span data-icone="mais"></span>Agendar consulta</button>
+    </div>
+
+    <!-- ===== Filtros: qual agenda mostrar ===== -->
+    <div class="filtros" role="group" aria-label="Escolher a agenda">
+      <div class="campo">
+        <label for="filtro-ubs">UBS</label>
+        <select id="filtro-ubs"></select>
+      </div>
+      <div class="campo">
+        <label for="filtro-especialidade">Especialidade</label>
+        <select id="filtro-especialidade"></select>
+      </div>
+      <div class="campo">
+        <label for="filtro-dia">Dia</label>
+        <div class="seletor-dia">
+          <button class="botao botao--secundario botao--icone" type="button" id="dia-anterior"><span data-icone="setaEsquerda"></span><span class="so-leitor">Dia anterior</span></button>
+          <input type="date" id="filtro-dia">
+          <button class="botao botao--secundario botao--icone" type="button" id="proximo-dia"><span data-icone="setaDireita"></span><span class="so-leitor">Próximo dia</span></button>
+          <button class="botao botao--secundario" type="button" id="botao-hoje">Hoje</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== A folha do dia + o painel de encaixe =====
+         No desktop, o painel abre como uma coluna à direita (o <aside>).
+         No celular, o mesmo conteúdo abre num <dialog> que sobe de baixo. -->
+    <div class="agenda" id="agenda">
+      <section class="folha agenda__folha" aria-labelledby="agenda-dia">
+        <!-- aria-live: ao trocar de dia, o leitor de tela anuncia o dia novo -->
+        <div class="folha__cabecalho" aria-live="polite">
+          <h2 class="folha__dia" id="agenda-dia" tabindex="-1">Agenda</h2>
+          <p class="folha__local" id="agenda-local"></p>
+        </div>
+        <ol class="folha__linhas" id="agenda-linhas"></ol>
+        <p class="agenda__vazia" id="agenda-vazia" hidden></p>
+      </section>
+
+      <aside class="painel-encaixe" id="painel-encaixe" aria-labelledby="painel-encaixe-titulo" hidden></aside>
+    </div>
+  </main>
+
+  <footer class="rodape">
+    <div class="container rodape__interno">
+      <div>
+        <p>Projeto acadêmico da Global Solution FIAP 2026/2. Dados fictícios para demonstração.</p>
+        <!-- É um <button> porque abre um dialog, e não leva a outra página -->
+        <button class="link-botao" type="button" data-abrir-dialog="dialog-restaurar">Restaurar dados de demonstração</button>
+      </div>
+      <div>
+        <p class="rodape__titulo">Grupo</p>
+        <!-- Preencher com os nomes e RMs dos integrantes -->
+        <ul class="rodape__nomes">
+          <li>Nome do integrante, RM 000000</li>
+          <li>Nome do integrante, RM 000000</li>
+          <li>Nome do integrante, RM 000000</li>
+        </ul>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Confirmação de "Restaurar dados". O <form method="dialog"> fecha a janela
+       sozinho, e o value do botão clicado diz ao JS o que a pessoa escolheu. -->
+  <dialog class="dialog" id="dialog-restaurar" aria-labelledby="dialog-restaurar-titulo">
+    <form method="dialog">
+      <h2 class="dialog__titulo" id="dialog-restaurar-titulo">Restaurar dados de demonstração?</h2>
+      <p>Tudo o que foi cadastrado ou alterado nesta demonstração será apagado, e os dados de exemplo voltam ao estado inicial.</p>
+      <div class="dialog__acoes">
+        <button class="botao botao--secundario" type="submit" value="cancelar" autofocus>Manter os dados atuais</button>
+        <button class="botao botao--perigoso" type="submit" value="restaurar">Restaurar dados</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- ===== Agendar consulta ===== -->
+  <dialog class="dialog dialog--largo" id="dialog-agendar" aria-labelledby="dialog-agendar-titulo">
+    <form id="formulario-agendar" novalidate>
+      <h2 class="dialog__titulo" id="dialog-agendar-titulo">Agendar consulta</h2>
+
+      <div class="campo" data-campo="pacienteId">
+        <label for="agendar-paciente">Paciente</label>
+        <select id="agendar-paciente" name="pacienteId" aria-describedby="erro-agendar-paciente"></select>
+        <p class="campo__erro" id="erro-agendar-paciente"></p>
+      </div>
+
+      <div class="campo" data-campo="ubsId">
+        <label for="agendar-ubs">UBS</label>
+        <select id="agendar-ubs" name="ubsId" aria-describedby="erro-agendar-ubs"></select>
+        <p class="campo__erro" id="erro-agendar-ubs"></p>
+      </div>
+
+      <div class="campo" data-campo="profissionalId">
+        <label for="agendar-profissional">Profissional</label>
+        <select id="agendar-profissional" name="profissionalId" aria-describedby="dica-agendar-profissional erro-agendar-profissional"></select>
+        <p class="campo__dica" id="dica-agendar-profissional"></p>
+        <p class="campo__erro" id="erro-agendar-profissional"></p>
+      </div>
+
+      <!-- Dia e horário formam um campo só (dataHora), com um erro só -->
+      <div class="campo" data-campo="dataHora">
+        <div class="campo__par">
+          <div class="campo">
+            <label for="agendar-dia">Dia</label>
+            <input type="date" id="agendar-dia" name="dia" aria-describedby="erro-agendar-horario">
+          </div>
+          <div class="campo">
+            <label for="agendar-hora">Horário</label>
+            <select id="agendar-hora" name="hora" aria-describedby="erro-agendar-horario"></select>
+          </div>
+        </div>
+        <p class="campo__erro" id="erro-agendar-horario"></p>
+      </div>
+
+      <p class="formulario__aviso" id="aviso-agendar" role="alert"></p>
+
+      <div class="dialog__acoes">
+        <button class="botao botao--secundario" type="button" data-fechar-dialog>Voltar</button>
+        <button class="botao botao--primario" type="submit">Agendar consulta</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- ===== Registrar falta: a recepção escolhe o motivo ===== -->
+  <dialog class="dialog" id="dialog-falta" aria-labelledby="dialog-falta-titulo">
+    <form id="formulario-falta" novalidate>
+      <h2 class="dialog__titulo" id="dialog-falta-titulo">Registrar falta</h2>
+      <p id="dialog-falta-texto"></p>
+      <fieldset class="campo campo--opcoes" data-campo="motivoFalta" aria-describedby="erro-motivo">
+        <legend>Por que a pessoa faltou?</legend>
+        <label class="opcao"><input type="radio" name="motivo" value="ESQUECIMENTO"> Esqueceu</label>
+        <label class="opcao"><input type="radio" name="motivo" value="TRANSPORTE"> Não conseguiu transporte</label>
+        <label class="opcao"><input type="radio" name="motivo" value="TRABALHO"> Não foi liberada do trabalho</label>
+        <label class="opcao"><input type="radio" name="motivo" value="SAUDE"> Problema de saúde</label>
+        <label class="opcao"><input type="radio" name="motivo" value="OUTRO"> Outro motivo</label>
+        <p class="campo__erro" id="erro-motivo"></p>
+      </fieldset>
+      <div class="dialog__acoes">
+        <button class="botao botao--secundario" type="button" data-fechar-dialog>Voltar</button>
+        <button class="botao botao--primario" type="submit">Registrar falta</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- ===== Cancelar consulta ===== -->
+  <dialog class="dialog" id="dialog-cancelar" aria-labelledby="dialog-cancelar-titulo" aria-describedby="dialog-cancelar-texto">
+    <form method="dialog" id="formulario-cancelar">
+      <h2 class="dialog__titulo" id="dialog-cancelar-titulo">Cancelar consulta?</h2>
+      <p id="dialog-cancelar-texto"></p>
+      <div class="dialog__acoes">
+        <button class="botao botao--secundario" type="submit" value="manter" autofocus>Manter consulta</button>
+        <button class="botao botao--perigoso" type="submit" value="cancelar">Cancelar consulta</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- ===== Painel de encaixe no celular: sobe de baixo ===== -->
+  <dialog class="dialog dialog--de-baixo" id="dialog-encaixe" aria-labelledby="painel-encaixe-titulo">
+    <div id="dialog-encaixe-conteudo"></div>
+  </dialog>
+</body>
+</html>

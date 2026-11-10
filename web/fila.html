@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fila de espera: Encaixe</title>
+  <meta name="description" content="Quem espera uma consulta com especialista, na ordem em que será chamado para um encaixe.">
+  <!-- Ícone da aba: o mesmo símbolo do logo, escrito direto aqui para funcionar em file:// -->
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2318233F'/%3E%3Cpath d='M9 16.8c3-.5 6.5-.8 10-.7' fill='none' stroke='%23EEF35A' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E">
+
+  <!-- Única exceção às regras: a fonte Atkinson Hyperlegible, do Google Fonts.
+       É só uma fonte, não uma biblioteca. Sem internet, o CSS usa a fonte do sistema. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&display=swap">
+  <link rel="stylesheet" href="css/style.css">
+
+  <!-- Avisa o CSS que o JS está ligado. Só então o menu do celular recolhe atrás
+       do botão "Menu". Sem JS, os links ficam sempre visíveis. Fica no <head>
+       para o menu não "piscar" aberto antes de fechar. -->
+  <script>document.documentElement.classList.add('js');</script>
+
+  <script src="js/dados-exemplo.js" defer></script>
+  <script src="js/validacao.js" defer></script>
+  <script src="js/regras.js" defer></script>
+  <script src="js/api.js" defer></script>
+  <script src="js/ui.js" defer></script>
+  <script src="js/paginas/fila.js" defer></script>
+</head>
+<body>
+  <a class="pular-conteudo" href="#conteudo">Pular para o conteúdo</a>
+
+  <header class="cabecalho">
+    <div class="container cabecalho__interno">
+      <a class="logo" href="index.html">
+        <!-- Símbolo: uma vaga (retângulo tracejado) sendo preenchida por um traço de marca-texto -->
+        <svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+          <rect width="32" height="32" rx="8" fill="#18233F"/>
+          <rect x="6.5" y="11" width="19" height="10" rx="2" fill="none" stroke="#FFFFFF" stroke-width="1.5" stroke-dasharray="3 2.2"/>
+          <path d="M9 16.8c3-.5 6.5-.8 10-.7" fill="none" stroke="#EEF35A" stroke-width="5" stroke-linecap="round"/>
+        </svg>
+        <span>Encaixe</span>
+      </a>
+
+      <button class="botao botao--secundario menu-botao" type="button" aria-expanded="false" aria-controls="menu-principal">Menu</button>
+
+      <nav class="menu" id="menu-principal" aria-label="Principal">
+        <ul class="menu__lista">
+          <li><a href="index.html">Início</a></li>
+          <li><a href="painel.html">Painel</a></li>
+          <li><a href="agenda.html">Agenda</a></li>
+          <li><a href="fila.html" aria-current="page">Fila</a></li>
+          <li><a href="pacientes.html">Pacientes</a></li>
+          <li><a href="relatorios.html">Relatórios</a></li>
+          <li class="menu__item-cidadao"><a class="menu__cidadao" href="minha-consulta.html">Minha consulta</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main id="conteudo" class="container pagina">
+    <h1>Fila de espera</h1>
+    <p class="pagina__intro">Quem espera uma consulta com especialista. A lista já vem na ordem em que as pessoas são chamadas quando surge uma vaga livre.</p>
+
+    <!-- ===== Formulário: adicionar e editar ===== -->
+    <section class="formulario-painel" aria-labelledby="formulario-titulo">
+      <h2 class="formulario-painel__titulo" id="formulario-titulo">Adicionar à fila</h2>
+
+      <form id="formulario-fila" novalidate>
+        <div class="formulario__grupos">
+
+          <fieldset class="grupo">
+            <legend>Paciente</legend>
+            <!-- A busca filtra a lista logo abaixo, para achar a pessoa entre muitos cadastros -->
+            <div class="campo" data-campo="pacienteId">
+              <label for="busca-paciente">Buscar por nome ou CPF</label>
+              <input type="search" id="busca-paciente" autocomplete="off" aria-controls="fila-paciente">
+              <label class="campo__rotulo-lista" for="fila-paciente">Paciente escolhido</label>
+              <select id="fila-paciente" name="pacienteId" size="5" aria-describedby="erro-paciente"></select>
+              <p class="campo__erro" id="erro-paciente"></p>
+            </div>
+          </fieldset>
+
+          <fieldset class="grupo">
+            <legend>Encaminhamento</legend>
+            <div class="campo" data-campo="especialidadeId">
+              <label for="fila-especialidade">Especialidade</label>
+              <select id="fila-especialidade" name="especialidadeId" aria-describedby="erro-especialidade"></select>
+              <p class="campo__erro" id="erro-especialidade"></p>
+            </div>
+            <div class="campo" data-campo="ubsId">
+              <label for="fila-ubs">UBS</label>
+              <select id="fila-ubs" name="ubsId" aria-describedby="erro-ubs"></select>
+              <p class="campo__erro" id="erro-ubs"></p>
+            </div>
+            <div class="campo" data-campo="dataEntrada">
+              <label for="fila-entrada">Data de entrada na fila</label>
+              <input type="date" id="fila-entrada" name="dataEntrada" aria-describedby="erro-entrada">
+              <p class="campo__erro" id="erro-entrada"></p>
+            </div>
+          </fieldset>
+
+          <fieldset class="grupo">
+            <legend>Classificação de risco</legend>
+            <fieldset class="campo campo--opcoes" data-campo="classificacaoRisco" aria-describedby="dica-risco erro-risco">
+              <legend>Qual o risco indicado no encaminhamento?</legend>
+              <p class="campo__dica" id="dica-risco">Quem define é o médico que encaminhou. O risco é o primeiro critério do encaixe.</p>
+              <label class="opcao"><input type="radio" name="classificacaoRisco" value="ALTA"> Risco alto</label>
+              <label class="opcao"><input type="radio" name="classificacaoRisco" value="MEDIA"> Risco médio</label>
+              <label class="opcao"><input type="radio" name="classificacaoRisco" value="BAIXA"> Risco baixo</label>
+              <p class="campo__erro" id="erro-risco"></p>
+            </fieldset>
+          </fieldset>
+        </div>
+
+        <p class="formulario__aviso" id="aviso-formulario" role="alert"></p>
+
+        <div class="formulario__acoes">
+          <button class="botao botao--primario" type="submit" id="botao-salvar">Adicionar à fila</button>
+          <button class="botao botao--secundario" type="button" id="botao-cancelar-edicao" hidden>Cancelar edição</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- ===== Lista, na ordem da regra de encaixe ===== -->
+    <section class="lista" aria-labelledby="lista-titulo">
+      <div class="lista__topo">
+        <h2 id="lista-titulo" tabindex="-1">Aguardando</h2>
+        <div class="lista__filtros">
+          <div class="campo">
+            <label for="filtro-especialidade">Especialidade</label>
+            <select id="filtro-especialidade"></select>
+          </div>
+          <div class="campo">
+            <label for="filtro-ubs">UBS</label>
+            <select id="filtro-ubs"></select>
+          </div>
+        </div>
+      </div>
+
+      <p class="lista__contagem" id="contagem" aria-live="polite"></p>
+
+      <div class="tabela-moldura" id="moldura-tabela">
+        <table class="tabela">
+          <caption class="so-leitor">Fila de espera, na ordem em que as pessoas são chamadas para encaixe</caption>
+          <thead>
+            <tr>
+              <th scope="col">Posição</th>
+              <th scope="col">Paciente</th>
+              <th scope="col">Especialidade e UBS</th>
+              <th scope="col">Risco</th>
+              <th scope="col">Na fila desde</th>
+              <th scope="col"><span class="so-leitor">Ações</span></th>
+            </tr>
+          </thead>
+          <tbody id="lista-fila"></tbody>
+        </table>
+      </div>
+
+      <p class="vazio" id="lista-vazia" hidden></p>
+    </section>
+  </main>
+
+  <footer class="rodape">
+    <div class="container rodape__interno">
+      <div>
+        <p>Projeto acadêmico da Global Solution FIAP 2026/2. Dados fictícios para demonstração.</p>
+        <!-- É um <button> porque abre um dialog, e não leva a outra página -->
+        <button class="link-botao" type="button" data-abrir-dialog="dialog-restaurar">Restaurar dados de demonstração</button>
+      </div>
+      <div>
+        <p class="rodape__titulo">Grupo</p>
+        <!-- Preencher com os nomes e RMs dos integrantes -->
+        <ul class="rodape__nomes">
+          <li>Nome do integrante, RM 000000</li>
+          <li>Nome do integrante, RM 000000</li>
+          <li>Nome do integrante, RM 000000</li>
+        </ul>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Confirmação de "Restaurar dados". O <form method="dialog"> fecha a janela
+       sozinho, e o value do botão clicado diz ao JS o que a pessoa escolheu. -->
+  <dialog class="dialog" id="dialog-restaurar" aria-labelledby="dialog-restaurar-titulo">
+    <form method="dialog">
+      <h2 class="dialog__titulo" id="dialog-restaurar-titulo">Restaurar dados de demonstração?</h2>
+      <p>Tudo o que foi cadastrado ou alterado nesta demonstração será apagado, e os dados de exemplo voltam ao estado inicial.</p>
+      <div class="dialog__acoes">
+        <button class="botao botao--secundario" type="submit" value="cancelar" autofocus>Manter os dados atuais</button>
+        <button class="botao botao--perigoso" type="submit" value="restaurar">Restaurar dados</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Confirmação de "Remover da fila" -->
+  <dialog class="dialog" id="dialog-remover" aria-labelledby="dialog-remover-titulo" aria-describedby="dialog-remover-texto">
+    <form method="dialog" id="formulario-remover">
+      <h2 class="dialog__titulo" id="dialog-remover-titulo">Remover da fila?</h2>
+      <p id="dialog-remover-texto">A pessoa sai da fila e deixa de ser chamada para encaixes. O histórico continua guardado.</p>
+      <div class="dialog__acoes">
+        <button class="botao botao--secundario" type="submit" value="manter" autofocus>Manter na fila</button>
+        <button class="botao botao--perigoso" type="submit" value="remover">Remover da fila</button>
+      </div>
+    </form>
+  </dialog>
+</body>
+</html>

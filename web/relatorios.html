@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Relatórios: Encaixe</title>
+  <meta name="description" content="Por que as pessoas faltam, quantas vagas foram salvas e onde a fila está maior.">
+  <!-- Ícone da aba: o mesmo símbolo do logo, escrito direto aqui para funcionar em file:// -->
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2318233F'/%3E%3Cpath d='M9 16.8c3-.5 6.5-.8 10-.7' fill='none' stroke='%23EEF35A' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E">
+
+  <!-- Única exceção às regras: a fonte Atkinson Hyperlegible, do Google Fonts.
+       É só uma fonte, não uma biblioteca. Sem internet, o CSS usa a fonte do sistema. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&display=swap">
+  <link rel="stylesheet" href="css/style.css">
+
+  <!-- Avisa o CSS que o JS está ligado. Só então o menu do celular recolhe atrás
+       do botão "Menu". Sem JS, os links ficam sempre visíveis. Fica no <head>
+       para o menu não "piscar" aberto antes de fechar. -->
+  <script>document.documentElement.classList.add('js');</script>
+
+  <script src="js/dados-exemplo.js" defer></script>
+  <script src="js/validacao.js" defer></script>
+  <script src="js/regras.js" defer></script>
+  <script src="js/api.js" defer></script>
+  <script src="js/ui.js" defer></script>
+  <script src="js/paginas/relatorios.js" defer></script>
+</head>
+<body>
+  <a class="pular-conteudo" href="#conteudo">Pular para o conteúdo</a>
+
+  <header class="cabecalho">
+    <div class="container cabecalho__interno">
+      <a class="logo" href="index.html">
+        <!-- Símbolo: uma vaga (retângulo tracejado) sendo preenchida por um traço de marca-texto -->
+        <svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+          <rect width="32" height="32" rx="8" fill="#18233F"/>
+          <rect x="6.5" y="11" width="19" height="10" rx="2" fill="none" stroke="#FFFFFF" stroke-width="1.5" stroke-dasharray="3 2.2"/>
+          <path d="M9 16.8c3-.5 6.5-.8 10-.7" fill="none" stroke="#EEF35A" stroke-width="5" stroke-linecap="round"/>
+        </svg>
+        <span>Encaixe</span>
+      </a>
+
+      <button class="botao botao--secundario menu-botao" type="button" aria-expanded="false" aria-controls="menu-principal">Menu</button>
+
+      <nav class="menu" id="menu-principal" aria-label="Principal">
+        <ul class="menu__lista">
+          <li><a href="index.html">Início</a></li>
+          <li><a href="painel.html">Painel</a></li>
+          <li><a href="agenda.html">Agenda</a></li>
+          <li><a href="fila.html">Fila</a></li>
+          <li><a href="pacientes.html">Pacientes</a></li>
+          <li><a href="relatorios.html" aria-current="page">Relatórios</a></li>
+          <li class="menu__item-cidadao"><a class="menu__cidadao" href="minha-consulta.html">Minha consulta</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main id="conteudo" class="container pagina">
+    <div class="pagina__topo">
+      <h1>Relatórios</h1>
+      <div class="campo campo--em-linha">
+        <label for="periodo">Período</label>
+        <select id="periodo">
+          <option value="30">Últimos 30 dias</option>
+          <option value="60">Últimos 60 dias</option>
+          <option value="90" selected>Últimos 90 dias</option>
+        </select>
+      </div>
+    </div>
+    <p class="pagina__intro">Por que as pessoas faltam, quantas vagas foram salvas e onde a fila está maior. É o que a Secretaria de Saúde usa para decidir onde agir.</p>
+
+    <!-- Cinco gráficos de barras feitos só com CSS. Cada barra é um item
+         de lista com o rótulo e o valor escritos, então o leitor de tela
+         lê os números mesmo sem ver as barras. -->
+    <div class="relatorios">
+      <section class="relatorio" aria-labelledby="titulo-faltas-ubs">
+        <h2 id="titulo-faltas-ubs">Taxa de faltas por UBS</h2>
+        <p class="relatorio__conclusao" id="conclusao-faltas-ubs"></p>
+        <ul class="barras" id="barras-faltas-ubs"></ul>
+        <p class="relatorio__nota">No sistema final, este relatório vem de uma consulta SQL com JOIN e GROUP BY.</p>
+      </section>
+
+      <section class="relatorio" aria-labelledby="titulo-faltas-especialidade">
+        <h2 id="titulo-faltas-especialidade">Taxa de faltas por especialidade</h2>
+        <p class="relatorio__conclusao" id="conclusao-faltas-especialidade"></p>
+        <ul class="barras" id="barras-faltas-especialidade"></ul>
+        <p class="relatorio__nota">No sistema final, este relatório vem de uma consulta SQL com JOIN e GROUP BY.</p>
+      </section>
+
+      <section class="relatorio" aria-labelledby="titulo-motivos">
+        <h2 id="titulo-motivos">Motivos de falta</h2>
+        <p class="relatorio__conclusao" id="conclusao-motivos"></p>
+        <ul class="barras" id="barras-motivos"></ul>
+        <p class="relatorio__nota">No sistema final, este relatório vem de uma consulta SQL com JOIN e GROUP BY.</p>
+      </section>
+
+      <section class="relatorio" aria-labelledby="titulo-reaproveitamento">
+        <h2 id="titulo-reaproveitamento">Reaproveitamento das vagas</h2>
+        <p class="relatorio__conclusao" id="conclusao-reaproveitamento"></p>
+        <ul class="legenda-barras" aria-hidden="true">
+          <li><span class="amostra amostra--liberada"></span>Vagas liberadas</li>
+          <li><span class="amostra amostra--reocupada"></span>Ocupadas de novo por encaixe</li>
+        </ul>
+        <ul class="barras barras--duplas" id="barras-reaproveitamento"></ul>
+        <p class="relatorio__nota">No sistema final, este relatório vem de uma consulta SQL com JOIN e GROUP BY.</p>
+      </section>
+
+      <section class="relatorio relatorio--largo" aria-labelledby="titulo-fila">
+        <h2 id="titulo-fila">Fila por especialidade</h2>
+        <p class="relatorio__conclusao" id="conclusao-fila"></p>
+        <ul class="barras" id="barras-fila"></ul>
+        <p class="relatorio__nota">No sistema final, este relatório vem de uma consulta SQL com JOIN e GROUP BY. A fila mostra quem aguarda hoje, então não depende do período.</p>
+      </section>
+    </div>
+  </main>
+
+  <footer class="rodape">
+    <div class="container rodape__interno">
+      <div>
+        <p>Projeto acadêmico da Global Solution FIAP 2026/2. Dados fictícios para demonstração.</p>
+        <!-- É um <button> porque abre um dialog, e não leva a outra página -->
+        <button class="link-botao" type="button" data-abrir-dialog="dialog-restaurar">Restaurar dados de demonstração</button>
+      </div>
+      <div>
+        <p class="rodape__titulo">Grupo</p>
+        <!-- Preencher com os nomes e RMs dos integrantes -->
+        <ul class="rodape__nomes">
+          <li>Nome do integrante, RM 000000</li>
+          <li>Nome do integrante, RM 000000</li>
+          <li>Nome do integrante, RM 000000</li>
+        </ul>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Confirmação de "Restaurar dados". O <form method="dialog"> fecha a janela
+       sozinho, e o value do botão clicado diz ao JS o que a pessoa escolheu. -->
+  <dialog class="dialog" id="dialog-restaurar" aria-labelledby="dialog-restaurar-titulo">
+    <form method="dialog">
+      <h2 class="dialog__titulo" id="dialog-restaurar-titulo">Restaurar dados de demonstração?</h2>
+      <p>Tudo o que foi cadastrado ou alterado nesta demonstração será apagado, e os dados de exemplo voltam ao estado inicial.</p>
+      <div class="dialog__acoes">
+        <button class="botao botao--secundario" type="submit" value="cancelar" autofocus>Manter os dados atuais</button>
+        <button class="botao botao--perigoso" type="submit" value="restaurar">Restaurar dados</button>
+      </div>
+    </form>
+  </dialog>
+</body>
+</html>
